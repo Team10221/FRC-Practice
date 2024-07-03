@@ -1,7 +1,9 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
@@ -46,10 +48,21 @@ public class Intake extends SubsystemBase {
 		intakeMotor.set(currentState.intakeSpeed);
 		feederMotor.set(currentState.feederSpeed);
 		angleMotor.getPIDController().setReference(currentState.anglePosition, ControlType.kPosition);
+
+		SmartDashboard.putString("Intake State", currentState.toString());
+		SmartDashboard.putNumber("Intake Angle Position", angleMotor.getEncoder().getPosition());
 	}
 
 	public void setState(IntakeState state) {
 		this.currentState = state;
+	}
+
+	public IntakeState getState() {
+		return this.currentState;
+	}
+
+	public boolean isAtTargetAngle() {
+		return Math.abs(angleMotor.getEncoder().getPosition() - currentState.anglePosition) < IntakeConstants.ACCURACY_THRESHOLD;
 	}
 
 	public void stopMotors() {

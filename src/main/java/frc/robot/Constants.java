@@ -16,6 +16,8 @@ public final class Constants {
 		public static final double INTAKE_SPEED = 0.0;
 		public static final double OUTTAKE_SPEED = 0.0;
 		public static final double FEED_SPEED = 0.0;
+
+		public static final double ACCURACY_THRESHOLD = 0.1;
 	}
 
 	public static class ShooterConstants {
@@ -27,13 +29,11 @@ public final class Constants {
 		public static final double ANGLE_PID_I = 0.0;
 		public static final double ANGLE_PID_D = 0.0;
 
-		public static final double SHOOTER_SPEED_UP = 1.0;
-		public static final double SHOOTER_SPEED_DOWN = 1.0;
+		public static final double ACCURACY_THRESHOLD = 0.1;
 
 		public static enum AngleState {
-			UP(0.0),
-			MIDDLE(0.0),
-			DOWN(0.0);
+			RESTING(0.0),
+			UP(0.0);
 
 			public final double position;
 
@@ -43,8 +43,16 @@ public final class Constants {
 		}
 
 		public static enum ShooterState {
-			ON,
-			OFF;
+			IDLE(0.0, 0.0),
+			SHOOTING(1.0, 1.0),
+			REVERSE(-0.25, -0.25);
+
+			public final double topSpeed, bottomSpeed;
+
+			ShooterState(double topSpeed, double bottomSpeed) {
+				this.topSpeed = topSpeed;
+				this.bottomSpeed = bottomSpeed;
+			}
 		}
 	}
 }
