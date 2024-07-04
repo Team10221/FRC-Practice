@@ -6,6 +6,7 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import frc.robot.Constants;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
+import frc.robot.Constants.IntakeConstants.AngleMotorPID;
 import frc.robot.util.Subsystem;
 
 public class Intake extends Subsystem {
@@ -14,7 +15,7 @@ public class Intake extends Subsystem {
         addMotor("angle", new CANSparkMax(IntakeConstants.ANGLE_MOTOR_ID, MotorType.kBrushless));
         addMotor("intake", new CANSparkMax(IntakeConstants.INTAKE_MOTOR_ID, MotorType.kBrushless));
         addMotor("feeder", new CANSparkMax(IntakeConstants.FEEDER_MOTOR_ID, MotorType.kBrushless));
-        addPIDController("angle", IntakeConstants.ANGLE_MOTOR_P, IntakeConstants.ANGLE_MOTOR_I, IntakeConstants.ANGLE_MOTOR_D);
+        addPIDController("angle", AngleMotorPID.class);
 		setName("Intake");
     }
 

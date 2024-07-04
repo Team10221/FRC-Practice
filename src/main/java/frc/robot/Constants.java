@@ -6,9 +6,11 @@ public final class Constants {
 		public static final int FEEDER_MOTOR_ID = 1;
 		public static final int INTAKE_MOTOR_ID = 2;
 
-		public static final double ANGLE_MOTOR_P = 0.0;
-		public static final double ANGLE_MOTOR_I = 0.0;
-		public static final double ANGLE_MOTOR_D = 0.0;
+		public static class AngleMotorPID {
+			public static final double kP = 0.0;
+			public static final double kI = 0.0;
+			public static final double kD = 0.0;
+		}
 
 		public static final double ANGLE_DOWN_POSITION = 0.0;
 		public static final double ANGLE_UP_POSITION = 0.0;
@@ -39,9 +41,11 @@ public final class Constants {
 		public static final int SHOOTER_MOTOR_DOWN_ID = 4;
 		public static final int ANGLE_MOTOR_ID = 5;
 
-		public static final double ANGLE_PID_P = 0.1;
-		public static final double ANGLE_PID_I = 0.0;
-		public static final double ANGLE_PID_D = 0.0;
+		public static class AngleMotorPID {
+			public static final double kP = 0.0;
+			public static final double kI = 0.0;
+			public static final double kD = 0.0;
+		}
 
 		public static final double ACCURACY_THRESHOLD = 0.1;
 

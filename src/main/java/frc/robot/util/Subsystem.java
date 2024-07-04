@@ -98,11 +98,9 @@ public abstract class Subsystem extends SubsystemBase {
     /**
      * Adds a PID controller to the subsystem
      * @param name The name of the PID controller
-     * @param kP The proportional gain
-     * @param kI The integral gain
-     * @param kD The derivative gain
+     * @param constants A static class with PID constants in fields kP, kI, kD
      */
-    protected void addPIDController(String name, double kP, double kI, double kD) {
+    protected void addPIDController(String name, Class<?> constants) {
         // Check if the provided name is null
         if (name == null) {
             System.err.println("ERROR: Attempted to add PID controller with null name to " + getName());
@@ -114,7 +112,27 @@ public abstract class Subsystem extends SubsystemBase {
             System.err.println("WARNING: Overwriting existing PID controller '" + name + "' in " + getName());
         }
 
+        // Get static fields from the provided PID constants class
+        double kP = getClassField(constants, "kP");
+        double kI = getClassField(constants, "kI");
+        double kD = getClassField(constants, "kD");
+
         pidControllers.put(name, new PIDController(kP, kI, kD));
+    }
+
+    /**
+     * Helper function to get a double field from a class
+     * @param clazz The static class
+     * @param fieldName The static field name
+     * @return
+     */
+    private double getClassField(Class<?> clazz, String fieldName) {
+        try {
+            return clazz.getField(fieldName).getDouble(null);
+        } catch (Exception e) {
+            System.err.println("ERROR: Unable to access field '" + fieldName + "' for class '" + clazz.getSimpleName());
+            return 0.0;
+        }
     }
 
     /**
