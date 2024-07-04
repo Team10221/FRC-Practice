@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkPIDController;
+import com.revrobotics.CANSparkBase.ControlType;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
@@ -17,7 +19,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public abstract class Subsystem extends SubsystemBase {
     private final Map<Class<? extends Enum<?>>, Enum<?>> currentStates;
     public final Map<String, MotorController> motors = new HashMap<>();
-    public final Map<String, PIDController> pidControllers = new HashMap<>();
+    // public final Map<String, PIDController> pidControllers = new HashMap<>();
 
     /**
      * Constructs a Subsystem with initial states for the given enum classes.
@@ -96,43 +98,76 @@ public abstract class Subsystem extends SubsystemBase {
     }
 
     /**
-     * Adds a PID controller to the subsystem
-     * @param name The name of the PID controller
-     * @param constants A static class with PID constants in fields kP, kI, kD
+     * Adds PID values to a motor's PID controller
+     * @param name The motor's name
+     * @param constants The PID constants
      */
-    protected void addPIDController(String name, Class<?> constants) {
-        // Check if the provided name is null
+    protected void addPIDValues(String name, Class<?> constants) {
+        MotorController motor = motors.get(name);
+
+        // Check if the motor name is null
         if (name == null) {
-            System.err.println("ERROR: Attempted to add PID controller with null name to " + getName());
+            System.err.println("ERROR: Attempted to add PID values with null name to subsystem " + getName());
             return;
         }
 
-        // Check if the pid controllers map already contains the name as a key
-        if (pidControllers.containsKey(name)) {
-            System.err.println("WARNING: Overwriting existing PID controller '" + name + "' in " + getName());
+        // Get the PID values from the class's fields
+        double kP = getClassFields(constants, "kP", "P");
+        double kI = getClassFields(constants, "kI", "I");
+        double kD = getClassFields(constants, "kD", "D");
+
+        // Use the integrated spark max PID controller if the motor is a spark max
+        if (motor instanceof CANSparkMax) {
+            SparkPIDController pidController = ((CANSparkMax) motor).getPIDController();
+            pidController.setP(kP);
+            pidController.setI(kI);
+            pidController.setD(kD);
         }
-
-        // Get static fields from the provided PID constants class
-        double kP = getClassField(constants, "kP");
-        double kI = getClassField(constants, "kI");
-        double kD = getClassField(constants, "kD");
-
-        pidControllers.put(name, new PIDController(kP, kI, kD));
     }
 
     /**
-     * Helper function to get a double field from a class
+     * Sets a PID setpoint with a specified control type
+     * @param name The motor's name
+     * @param setpoint The PID setpoint
+     * @param controlType The PID controller mode
+     */
+    protected void setPIDReference(String name, double setpoint, ControlType controlType) {
+        MotorController motor = motors.get(name);
+
+        // Use SparkPIDController's built in PID control if the motor controller is a CAN spark max
+        if (motor instanceof CANSparkMax) {
+            ((CANSparkMax) motor).getPIDController().setReference(setpoint, controlType);
+        }
+    }
+
+    /**
+     * Helper function to get a double field from a class to be used by getClassFields
      * @param clazz The static class
      * @param fieldName The static field name
-     * @return
+     * @return A Double object representing the double field if present, null otherwise
      */
-    private double getClassField(Class<?> clazz, String fieldName) {
+    private Double getClassField(Class<?> clazz, String fieldName) {
         try {
             return clazz.getField(fieldName).getDouble(null);
         } catch (Exception e) {
-            System.err.println("ERROR: Unable to access field '" + fieldName + "' for class '" + clazz.getSimpleName());
-            return 0.0;
+            return null;
         }
+    }
+
+    /**
+     * Helper function to get a double field from a possibility of multiple fields
+     * @param clazz The static class
+     * @param fieldNames The possible field names as arguments
+     * @return A double value for the first valid field supplied as an argument
+     */
+    private double getClassFields(Class<?> clazz, String... fieldNames) {
+        for (String fieldName : fieldNames) {
+            Double field = getClassField(clazz, fieldName);
+            if (field != null) {
+                return field;
+            }
+        }
+        return 0.0;
     }
 
     /**
