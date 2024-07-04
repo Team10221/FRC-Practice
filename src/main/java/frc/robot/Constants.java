@@ -18,6 +18,20 @@ public final class Constants {
 		public static final double FEED_SPEED = 0.0;
 
 		public static final double ACCURACY_THRESHOLD = 0.1;
+
+		public enum IntakeState {
+			IDLE(0.0, 0.0, IntakeConstants.ANGLE_UP_POSITION),
+			INTAKE(IntakeConstants.INTAKE_SPEED, IntakeConstants.FEED_SPEED, IntakeConstants.ANGLE_DOWN_POSITION),
+			OUTTAKE(IntakeConstants.OUTTAKE_SPEED, -IntakeConstants.FEED_SPEED, IntakeConstants.ANGLE_DOWN_POSITION);
+	
+			public final double intakeSpeed, feederSpeed, anglePosition;
+	
+			IntakeState(double intakeSpeed, double feederSpeed, double anglePosition) {
+				this.intakeSpeed = intakeSpeed;
+				this.feederSpeed = feederSpeed;
+				this.anglePosition = anglePosition;
+			}
+		}
 	}
 
 	public static class ShooterConstants {

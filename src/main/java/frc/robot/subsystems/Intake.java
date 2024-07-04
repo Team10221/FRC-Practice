@@ -1,74 +1,33 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.IntakeConstants;
-
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
-public class Intake extends SubsystemBase {
-	private CANSparkMax angleMotor, intakeMotor, feederMotor;
-	private IntakeState currentState = IntakeState.IDLE;
+import frc.robot.Constants;
+import frc.robot.Constants.IntakeConstants;
+import frc.robot.Constants.IntakeConstants.IntakeState;
+import frc.robot.util.Subsystem;
 
-	public enum IntakeState {
-		IDLE(0.0, 0.0, IntakeConstants.ANGLE_UP_POSITION),
-		INTAKE(IntakeConstants.INTAKE_SPEED, IntakeConstants.FEED_SPEED, IntakeConstants.ANGLE_DOWN_POSITION),
-		OUTTAKE(IntakeConstants.OUTTAKE_SPEED, -IntakeConstants.FEED_SPEED, IntakeConstants.ANGLE_DOWN_POSITION);
+public class Intake extends Subsystem {
+    public Intake() {
+        super(IntakeState.class);
+        addMotor("angle", new CANSparkMax(IntakeConstants.ANGLE_MOTOR_ID, MotorType.kBrushless));
+        addMotor("intake", new CANSparkMax(IntakeConstants.INTAKE_MOTOR_ID, MotorType.kBrushless));
+        addMotor("feeder", new CANSparkMax(IntakeConstants.FEEDER_MOTOR_ID, MotorType.kBrushless));
+        addPIDController("angle", IntakeConstants.ANGLE_MOTOR_P, IntakeConstants.ANGLE_MOTOR_I, IntakeConstants.ANGLE_MOTOR_D);
+    }
 
-		public final double intakeSpeed, feederSpeed, anglePosition;
+    @Override
+    protected void updateMotors() {
+		IntakeState currentState = getState(IntakeState.class);
 
-		IntakeState(double intakeSpeed, double feederSpeed, double anglePosition) {
-			this.intakeSpeed = intakeSpeed;
-			this.feederSpeed = feederSpeed;
-			this.anglePosition = anglePosition;
-		}
-	}
-
-	public Intake() {
-		try {
-			angleMotor = new CANSparkMax(IntakeConstants.ANGLE_MOTOR_ID, MotorType.kBrushless);
-			intakeMotor = new CANSparkMax(IntakeConstants.INTAKE_MOTOR_ID, MotorType.kBrushless);
-			feederMotor = new CANSparkMax(IntakeConstants.FEEDER_MOTOR_ID, MotorType.kBrushless);
-			configureMotors();
-		} catch (Exception e) {
-			System.err.println("Error initializing motors: " + e.getMessage());
-		}
-	}
-
-	private void configureMotors() {
-		angleMotor.getPIDController().setP(IntakeConstants.ANGLE_MOTOR_P);
-		angleMotor.getPIDController().setI(IntakeConstants.ANGLE_MOTOR_I);
-		angleMotor.getPIDController().setD(IntakeConstants.ANGLE_MOTOR_D);
-	}
-
-	@Override
-	public void periodic() {
-		intakeMotor.set(currentState.intakeSpeed);
-		feederMotor.set(currentState.feederSpeed);
-		angleMotor.getPIDController().setReference(currentState.anglePosition, ControlType.kPosition);
-
-		SmartDashboard.putString("Intake State", currentState.toString());
-		SmartDashboard.putNumber("Intake Angle Position", angleMotor.getEncoder().getPosition());
-	}
-
-	public void setState(IntakeState state) {
-		this.currentState = state;
-	}
-
-	public IntakeState getState() {
-		return this.currentState;
-	}
-
-	public boolean isAtTargetAngle() {
-		return Math.abs(angleMotor.getEncoder().getPosition() - currentState.anglePosition) < IntakeConstants.ACCURACY_THRESHOLD;
-	}
-
-	public void stopMotors() {
-		setState(IntakeState.IDLE);
-		intakeMotor.stopMotor();
-		feederMotor.stopMotor();
-		angleMotor.stopMotor();
-	}
+		motors.get("intake").set(getState(IntakeState.class).intakeSpeed);
+		motors.get("feeder").set(getState(IntakeState.class).feederSpeed);
+        
+        double targetPosition = (currentState == IntakeState.IDLE) ? 
+            Constants.IntakeConstants.ANGLE_UP_POSITION : 
+            Constants.IntakeConstants.ANGLE_DOWN_POSITION;
+        pidControllers.get("angle").setSetpoint(targetPosition);
+        motors.get("angle").set(pidControllers.get("angle").calculate(((CANSparkMax)motors.get("angle")).getEncoder().getPosition()));
+    }
 }
