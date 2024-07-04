@@ -14,6 +14,7 @@ public class Shooter extends Subsystem {
         addMotor("top", new CANSparkMax(ShooterConstants.SHOOTER_MOTOR_UP_ID, MotorType.kBrushless));
         addMotor("bottom", new CANSparkMax(ShooterConstants.SHOOTER_MOTOR_DOWN_ID, MotorType.kBrushless));
         addMotor("angle", new CANSparkMax(ShooterConstants.ANGLE_MOTOR_ID, MotorType.kBrushless));
+        setName("Shooter");
         configureMotors();
     }
 
