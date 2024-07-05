@@ -9,7 +9,6 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkBase.ControlType;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -19,7 +18,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public abstract class Subsystem extends SubsystemBase {
     private final Map<Class<? extends Enum<?>>, Enum<?>> currentStates;
     public final Map<String, MotorController> motors = new HashMap<>();
-    // public final Map<String, PIDController> pidControllers = new HashMap<>();
 
     /**
      * Constructs a Subsystem with initial states for the given enum classes.

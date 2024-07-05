@@ -29,8 +29,8 @@ public final class Constants {
 			public final double intakeSpeed, feederSpeed, anglePosition;
 	
 			IntakeState(double intakeSpeed, double feederSpeed, double anglePosition) {
-				this.intakeSpeed = intakeSpeed;
-				this.feederSpeed = feederSpeed;
+				this.intakeSpeed = intakeSpeed; 
+				this.feederSpeed = feederSpeed; 
 				this.anglePosition = anglePosition;
 			}
 		}
@@ -68,7 +68,7 @@ public final class Constants {
 			public final double topSpeed, bottomSpeed;
 
 			ShooterState(double topSpeed, double bottomSpeed) {
-				this.topSpeed = topSpeed;
+				this.topSpeed = topSpeed; 
 				this.bottomSpeed = bottomSpeed;
 			}
 		}
