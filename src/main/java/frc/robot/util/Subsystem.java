@@ -2,10 +2,12 @@ package frc.robot.util;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkBase.ControlType;
@@ -31,11 +33,38 @@ public abstract class Subsystem extends SubsystemBase {
         this.states = new HashMap<>();
         this.motors = new HashMap<>();
 
-        // Convert each enum to a Mutable and extract enum constants
         for (Class <? extends Enum<?>> clazz : enumClasses) {
-            values.put(clazz, EnumToMutable.translate(clazz));
+            values.put(clazz, translate(clazz));
             states.put(clazz, clazz.getEnumConstants()[0]);
         }
+    }
+
+    /**
+     * Translates an enum class to a Mutable object.
+     * @param <E> The enum type.
+     * @param <T> The type of values in the enum (assumed to be the same for all fields).
+     * @param enumClass The enum class to translate.
+     * @return A Mutable object representing the enum.
+     */
+    @SuppressWarnings("unchecked")
+    public static <E extends Enum<E>, T extends Comparable<T>> Mutable<T> translate(Class<? extends Enum<?>> enumClass) {
+        Mutable<T> mutable = new Mutable<>();
+        for (Enum<?> enumConstant: enumClass.getEnumConstants()) {
+            Mutable.Builder<T> builder = new Mutable.Builder<>(enumConstant.name());
+            for (Field field : enumClass.getDeclaredFields()) {
+                if (!field.isEnumConstant() && !field.isSynthetic()) {
+                    field.setAccessible(true);
+                    try {
+                        T value = (T) field.get(enumConstant);
+                        builder.with(field.getName(), value);
+                    } catch (IllegalAccessException e) {
+                        System.err.println("Error accessing field: " + field.getName());
+                    }
+                }
+            }
+            mutable.addInstance(builder.build());
+        }
+        return mutable;
     }
 
     /**
@@ -45,25 +74,17 @@ public abstract class Subsystem extends SubsystemBase {
      * @return The current state, or the first enum constant if no state is set.
      */
     public <E extends Enum<E>> E getState(Class<E> stateClass) {
-        // Get the state from the enum class
         Enum<?> state = states.get(stateClass);
-        
-        // Check if the state is null
         if (state == null) {
             System.err.println("WARNING: No state found for class: " + stateClass.getSimpleName());
-            
             E[] enumConstants = stateClass.getEnumConstants();
             if (enumConstants.length > 0) { 
-                // Return the first constant if constants are present
                 return enumConstants[0];
             } else { 
-                // Return null if no enum constants are found
                 System.err.println("ERROR: No enum constants found for class: " + stateClass.getSimpleName());
                 return null;
             }
         }
-
-        // Return the state
         return stateClass.cast(state);
     }
 
@@ -73,13 +94,10 @@ public abstract class Subsystem extends SubsystemBase {
      * @param state The state to set.
      */
     public <E extends Enum<E>> void setState(E state) {
-        // Check if the state is null
         if (state == null) {
             System.err.println("ERROR: Attempted to set null state for subystem " + getName());
             return;
         }
-
-        // Update the HashMap
         states.put(state.getDeclaringClass(), state);
     }
 
@@ -91,40 +109,26 @@ public abstract class Subsystem extends SubsystemBase {
      */
     @SuppressWarnings("unchecked")
     public <T extends Comparable<T>> T getStateValue(Class<?> enumClass) {
-        // Get the current state
         Enum<?> currentState = states.get(enumClass);
-
-        // Check if the current state is null
         if (currentState == null) {
             System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
             return null;
         }
 
-        // Get the values for the specified enum
         Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
-
-        // Get the instance for the current state
         Mutable.Instance<T> instance = mutable.getInstance(currentState.name());
-
-        // Check if the instance is null
         if (instance == null) {
             System.err.println("ERROR: No instance found for state: " + currentState.name());
             return null;
         }
 
-       // Get all field names for this instance
         Set<String> fieldNames = instance.getKeys();
-
-        // Check if there's exactly one field
         if (fieldNames.size() != 1) {
             System.err.println("ERROR: Expected exactly one field, but found " + fieldNames.size() + " for state: " + currentState.name());
             return null;
         }
 
-        // Get the single field name
         String singleFieldName = fieldNames.iterator().next();
-
-        // Get and return the value for the field
         return instance.get(singleFieldName);
     }
 
@@ -137,19 +141,14 @@ public abstract class Subsystem extends SubsystemBase {
      */
     @SuppressWarnings("unchecked")
     public <T extends Comparable<T>> T getStateValue(Class<?> enumClass, String key) {
-        // Get the current state
         Enum<?> currentState = states.get(enumClass);
 
-        // Check if the current state is null
         if (currentState == null) {
             System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
             return null;
         }
 
-        // Set the values for the specified enum
         Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
-
-        // Set the requested value
         return mutable.getInstance(currentState.name()).get(key);
     }
 
@@ -163,21 +162,16 @@ public abstract class Subsystem extends SubsystemBase {
      */
     @SuppressWarnings("unchecked")
     public <T extends Comparable<T>> T getStateValue(Class<? extends Enum<?>> enumClass, String key, String instanceName) {
-        // Get the values from the specified enum
         Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
-        
-        // Check if the Mutable is null
         if (mutable == null) {
             System.err.println("ERROR: No Mutable found for enum class " + enumClass.getSimpleName());
             return null;
         }
 
-        // Check if the provided instanceName is null
         String stateName;
         if (instanceName == null) {
             System.err.println("WARNING: provided instanceName is null, defaulting to current state name");
 
-            // Default to the current state
             Enum<?> currentState = states.get(enumClass);
             if (currentState == null) {
                 System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
@@ -188,10 +182,7 @@ public abstract class Subsystem extends SubsystemBase {
             stateName = instanceName;
         }
 
-        // Get the instance of the state
         Mutable.Instance<T> instance = mutable.getInstance(stateName);
-
-        // Check if the instance is null
         if (instance == null) {
             System.err.println("ERROR: No instance found with name " + stateName);
             return null;
@@ -208,58 +199,40 @@ public abstract class Subsystem extends SubsystemBase {
      */
     @SuppressWarnings("unchecked")
     public <T extends Comparable<T>> void modifyStateValue(Class<? extends Enum<?>> enumClass, T value) {
-        // Get the current state
         Enum<?> currentState = states.get(enumClass);
-
-        // Check if the current state is null
         if (currentState == null) {
             System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
             return;
         }
 
-        // Get the values for the specified enum
         Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
-
-        // Get the instance for the current state
         Mutable.Instance<T> instance = mutable.getInstance(currentState.name());
 
-        // Check if the instance is null
         if (instance == null) {
             System.err.println("ERROR: No instance found for state: " + currentState.name());
             return;
         }
 
-        // Get all field names for this instance
         Set<String> fieldNames = instance.getKeys();
-
-        // Check if there's exactly one field
         if (fieldNames.size() != 1) {
             System.err.println("ERROR: Expected exactly one field, but found " + fieldNames.size() + " for state: " + currentState.name());
             return;
         }
 
-        // Get the single field name
         String singleFieldName = fieldNames.iterator().next();
-
-        // Set the value for the single field
         instance.set(singleFieldName, value);
     }
 
     @SuppressWarnings("unchecked")
     public <T extends Comparable<T>> void modifyStateValue(Class<? extends Enum<?>> enumClass, String key, T value) {
-        // Get the current state
         Enum<?> currentState = states.get(enumClass);
 
-        // Check if the current state is null
         if (currentState == null) {
             System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
             return;
         }
 
-        // Get the values for the specified enum
         Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
-
-        // Set the requested value
         mutable.getInstance(currentState.name()).set(key, value);
     }
 
@@ -273,21 +246,16 @@ public abstract class Subsystem extends SubsystemBase {
      */
     @SuppressWarnings("unchecked")
     public <T extends Comparable<T>> void modifyStateValue(Class<? extends Enum<?>> enumClass, String key, T value, String instanceName) {
-        // Get the values from the specified enum
         Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
-
-        // Check if the Mutable is null
         if (mutable == null) {
             System.err.println("ERROR: No Mutable found for class " + enumClass.getSimpleName());
             return;
         }
 
-        // Check if the provided instanceName is null
         String stateName;
         if (instanceName == null) {
             System.err.println("WARNING: provided instanceName is null, defaulting to current state name");
 
-            // Default to the current state name
             Enum<?> currentState = states.get(enumClass);
             if (currentState == null) {
                 System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
@@ -298,10 +266,7 @@ public abstract class Subsystem extends SubsystemBase {
             stateName = instanceName;
         }
 
-        // Get an instance of the state
         Mutable.Instance<T> instance = mutable.getInstance(stateName);
-
-        // Check if the instance is null
         if (instance == null) {
             System.err.println("ERROR: No instance found with name " + stateName);
             return;
@@ -316,13 +281,11 @@ public abstract class Subsystem extends SubsystemBase {
      * @param motor The motor controller
      */
     protected void addMotor(String name, MotorController motor) {
-        // Check if the provided name or motor are null
         if (name == null || motor == null) {
             System.err.println("ERROR: Attempted to add null motor or name to " + getName());
             return;
         }
 
-        // Check if the motors map already contains the name as a key
         if (motors.containsKey(name)) {
             System.err.println("WARNING: Overwriting existing motor '" + name + "' in " + getName());
         }
@@ -335,26 +298,38 @@ public abstract class Subsystem extends SubsystemBase {
      * @param name The motor's name
      * @param constants The PID constants
      */
-    protected void addPIDValues(String name, Class<?> constants) {
+    protected void addPIDValues(String name, Class<?> constants) { // TODO: Optional<Double> use?
         MotorController motor = motors.get(name);
 
-        // Check if the motor name is null
         if (name == null) {
             System.err.println("ERROR: Attempted to add PID values with null name to subsystem " + getName());
             return;
         }
 
-        // Get the PID values from the class's fields
         double kP = getClassFields(constants, "kP", "P");
         double kI = getClassFields(constants, "kI", "I");
         double kD = getClassFields(constants, "kD", "D");
+        double kF = getClassFields(constants, "FF", "ff", "F", "kF");
+        double kIZone = getClassFields(constants, "kIzone", "Izone", "kIz", "Iz", "IZ");
+        double kDFilter = getClassFields(constants, "kDFilter", "DFilter", "kDF", "kDF", "DF");
+        double kMinOutput = getClassFields(constants, "kMinOutput", "MinOutput", "kMin");
+        double kMaxOutput = getClassFields(constants, "kMaxOutput", "MaxOutput", "kMax");
 
-        // Use the integrated spark max PID controller if the motor is a spark max
-        if (motor instanceof CANSparkMax) {
-            SparkPIDController pidController = ((CANSparkMax) motor).getPIDController();
+        if (motor instanceof CANSparkBase) {
+            SparkPIDController pidController = ((CANSparkBase) motor).getPIDController();
             pidController.setP(kP);
             pidController.setI(kI);
             pidController.setD(kD);
+            pidController.setFF(kF);
+            pidController.setIZone(kIZone);
+            pidController.setDFilter(kDFilter);
+
+            if (kMinOutput < -1.0 || kMinOutput > 1.0 || kMaxOutput < -1.0 || kMaxOutput > 1.0 ) {
+                System.err.println("WARNING: Invalid kMinOutput or kMaxOutput provided, using default values.");
+                kMinOutput = kMaxOutput = 0.0;
+            } else if (kMinOutput != 0.0 || kMaxOutput != 0.0) {
+                pidController.setOutputRange(kMinOutput, kMaxOutput);
+            }
         }
     }
 
@@ -367,7 +342,6 @@ public abstract class Subsystem extends SubsystemBase {
     protected void setPIDReference(String name, double setpoint, ControlType controlType) {
         MotorController motor = motors.get(name);
 
-        // Use SparkPIDController's built in PID control if the motor controller is a CAN spark max
         if (motor instanceof CANSparkMax) {
             ((CANSparkMax) motor).getPIDController().setReference(setpoint, controlType);
         }
@@ -413,18 +387,15 @@ public abstract class Subsystem extends SubsystemBase {
     public boolean isAtTargetPosition(String motorName, double targetPosition, double threshold) {
         MotorController motor = motors.get(motorName);
 
-        // Check if the motor doesn't exist
         if (motor == null) {
             System.err.println("ERROR: No motor found with name '" + motorName + "' in " + getName());
             return false;
         }
 
-        // Check if the motor controller is a spark max
         if (motor instanceof CANSparkMax) {
             return Math.abs(((CANSparkMax) motor).getEncoder().getPosition() - targetPosition) < threshold;
         }
 
-        // Return false if the motor controller isn't supported
         return false;
     }
 
