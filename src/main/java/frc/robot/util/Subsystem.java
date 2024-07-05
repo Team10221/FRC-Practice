@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkPIDController;
@@ -83,29 +84,230 @@ public abstract class Subsystem extends SubsystemBase {
     }
 
     /**
-     * Retrieves a specified value from a mutable state instance.
+     * Retrieves the value from the current state when there's only one field.
+     * @param <T> The type of the value to retrieve.
+     * @param enumClass The enum class representing the state.
+     * @return The value of the single field in the current state, or null if an error occurs.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Comparable<T>> T getStateValue(Class<?> enumClass) {
+        // Get the current state
+        Enum<?> currentState = states.get(enumClass);
+
+        // Check if the current state is null
+        if (currentState == null) {
+            System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
+            return null;
+        }
+
+        // Get the values for the specified enum
+        Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
+
+        // Get the instance for the current state
+        Mutable.Instance<T> instance = mutable.getInstance(currentState.name());
+
+        // Check if the instance is null
+        if (instance == null) {
+            System.err.println("ERROR: No instance found for state: " + currentState.name());
+            return null;
+        }
+
+       // Get all field names for this instance
+        Set<String> fieldNames = instance.getKeys();
+
+        // Check if there's exactly one field
+        if (fieldNames.size() != 1) {
+            System.err.println("ERROR: Expected exactly one field, but found " + fieldNames.size() + " for state: " + currentState.name());
+            return null;
+        }
+
+        // Get the single field name
+        String singleFieldName = fieldNames.iterator().next();
+
+        // Get and return the value for the field
+        return instance.get(singleFieldName);
+    }
+
+    /**
+     * Retrieves a specified value from the current state for an enum.
      * @param <T> The enum type.
      * @param enumClass The original enum class.
-     * @param instanceName The name of the state to retrieve.
      * @param key The field name to retrieve.
      * @return The value of the specified field in the state.
      */
-    public <T extends Enum<T>> Object getStateValue(Class<?> enumClass, String instanceName, String key) {
-        return values.get(enumClass).getInstance(instanceName).get(key);
+    @SuppressWarnings("unchecked")
+    public <T extends Comparable<T>> T getStateValue(Class<?> enumClass, String key) {
+        // Get the current state
+        Enum<?> currentState = states.get(enumClass);
+
+        // Check if the current state is null
+        if (currentState == null) {
+            System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
+            return null;
+        }
+
+        // Set the values for the specified enum
+        Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
+
+        // Set the requested value
+        return mutable.getInstance(currentState.name()).get(key);
+    }
+
+    /**
+     * Retrieves a specified value from a mutable state instance.
+     * @param <T> The type of the value to retrieve.
+     * @param enumClass The original enum class.
+     * @param key The field name to retrieve.
+     * @param instanceName Optional. The name of the state to retrieve. If null, uses the current state.
+     * @return The value of the specified field in the state.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Comparable<T>> T getStateValue(Class<? extends Enum<?>> enumClass, String key, String instanceName) {
+        // Get the values from the specified enum
+        Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
+        
+        // Check if the Mutable is null
+        if (mutable == null) {
+            System.err.println("ERROR: No Mutable found for enum class " + enumClass.getSimpleName());
+            return null;
+        }
+
+        // Check if the provided instanceName is null
+        String stateName;
+        if (instanceName == null) {
+            System.err.println("WARNING: provided instanceName is null, defaulting to current state name");
+
+            // Default to the current state
+            Enum<?> currentState = states.get(enumClass);
+            if (currentState == null) {
+                System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
+                return null;
+            }
+            stateName = currentState.name();
+        } else {
+            stateName = instanceName;
+        }
+
+        // Get the instance of the state
+        Mutable.Instance<T> instance = mutable.getInstance(stateName);
+
+        // Check if the instance is null
+        if (instance == null) {
+            System.err.println("ERROR: No instance found with name " + stateName);
+            return null;
+        }
+
+        return instance.get(key);
+    }
+
+    /**
+     * Modifies the value of the current state when there's only one field.
+     * @param <T> The type of the value to set.
+     * @param enumClass The enum class representing the state.
+     * @param value The new value to set for the single field.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Comparable<T>> void modifyStateValue(Class<? extends Enum<?>> enumClass, T value) {
+        // Get the current state
+        Enum<?> currentState = states.get(enumClass);
+
+        // Check if the current state is null
+        if (currentState == null) {
+            System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
+            return;
+        }
+
+        // Get the values for the specified enum
+        Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
+
+        // Get the instance for the current state
+        Mutable.Instance<T> instance = mutable.getInstance(currentState.name());
+
+        // Check if the instance is null
+        if (instance == null) {
+            System.err.println("ERROR: No instance found for state: " + currentState.name());
+            return;
+        }
+
+        // Get all field names for this instance
+        Set<String> fieldNames = instance.getKeys();
+
+        // Check if there's exactly one field
+        if (fieldNames.size() != 1) {
+            System.err.println("ERROR: Expected exactly one field, but found " + fieldNames.size() + " for state: " + currentState.name());
+            return;
+        }
+
+        // Get the single field name
+        String singleFieldName = fieldNames.iterator().next();
+
+        // Set the value for the single field
+        instance.set(singleFieldName, value);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Comparable<T>> void modifyStateValue(Class<? extends Enum<?>> enumClass, String key, T value) {
+        // Get the current state
+        Enum<?> currentState = states.get(enumClass);
+
+        // Check if the current state is null
+        if (currentState == null) {
+            System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
+            return;
+        }
+
+        // Get the values for the specified enum
+        Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
+
+        // Set the requested value
+        mutable.getInstance(currentState.name()).set(key, value);
     }
 
     /**
      * Modifies a value in a Mutable state instance.
      * @param <T> The type of the value being set.
      * @param enumClass The original enum class.
-     * @param instanceName The name of the state to modify.
      * @param key The field name to update.
      * @param value The new value to set.
+     * @param instanceName Optional. The name of the state to modify. If null, modifies the current state.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Comparable<T>> void modifyStateValue(Class<?> enumClass, String instanceName, String key, T value) {
+    public <T extends Comparable<T>> void modifyStateValue(Class<? extends Enum<?>> enumClass, String key, T value, String instanceName) {
+        // Get the values from the specified enum
         Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
-        mutable.getInstance(instanceName).set(key, value);
+
+        // Check if the Mutable is null
+        if (mutable == null) {
+            System.err.println("ERROR: No Mutable found for class " + enumClass.getSimpleName());
+            return;
+        }
+
+        // Check if the provided instanceName is null
+        String stateName;
+        if (instanceName == null) {
+            System.err.println("WARNING: provided instanceName is null, defaulting to current state name");
+
+            // Default to the current state name
+            Enum<?> currentState = states.get(enumClass);
+            if (currentState == null) {
+                System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
+                return;
+            }
+            stateName = currentState.name();
+        } else {
+            stateName = instanceName;
+        }
+
+        // Get an instance of the state
+        Mutable.Instance<T> instance = mutable.getInstance(stateName);
+
+        // Check if the instance is null
+        if (instance == null) {
+            System.err.println("ERROR: No instance found with name " + stateName);
+            return;
+        }
+
+        instance.set(key, value);
     }
 
     /**
