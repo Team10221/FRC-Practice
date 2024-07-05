@@ -12,16 +12,21 @@ public class EnumToMutable {
      * @return A Mutable object representing the enum.
      */
     @SuppressWarnings("unchecked")
-    public static <E extends Enum<E>, T extends Comparable<T>> Mutable<T> translate(Class<E> enumClass) {
+    public static <E extends Enum<E>, T extends Comparable<T>> Mutable<T> translate(Class<? extends Enum<?>> enumClass) {
         Mutable<T> mutable = new Mutable<>();
 
-        for (E enumConstant: enumClass.getEnumConstants()) {
+        // Iterate over all enum constants
+        for (Enum<?> enumConstant: enumClass.getEnumConstants()) {
             Mutable.Builder<T> builder = new Mutable.Builder<>(enumConstant.name());
 
+            // Iterate over all enum fields
             for (Field field : enumClass.getDeclaredFields()) {
+                // Skip enum constants and synthetic fields
                 if (!field.isEnumConstant() && !field.isSynthetic()) {
+                    // Access fields independent of their access modifier
                     field.setAccessible(true);
 
+                    // Extract field value
                     try {
                         T value = (T) field.get(enumConstant);
                         builder.with(field.getName(), value);

@@ -13,66 +13,99 @@ import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
- * Abstract base class for robot subsystems
+ * Abstract base class for robot subsystems.
  */
 public abstract class Subsystem extends SubsystemBase {
-    private final Map<Class<? extends Enum<?>>, Enum<?>> currentStates;
-    public final Map<String, MotorController> motors = new HashMap<>();
+    private final Map<Class<? extends Enum<?>>, Mutable<? extends Comparable<?>>> values;
+    private final Map<Class<? extends Enum<?>>, Enum<?>> states;
+    public final Map<String, MotorController> motors;
 
     /**
-     * Constructs a Subsystem with initial states for the given enum classes.
-     * @param enumClasses The enum classes to initialize states for
+     * Constructs a Subsystem with initial states and values for the given enum classes.
+     * @param enumClasses The enum classes to initialize states and values from.
      */
     @SafeVarargs
     public Subsystem(Class<? extends Enum<?>>... enumClasses) {
-        this.currentStates = new HashMap<>();
+        this.values = new HashMap<>();
+        this.states = new HashMap<>();
+        this.motors = new HashMap<>();
+
+        // Convert each enum to a Mutable and extract enum constants
         for (Class <? extends Enum<?>> clazz : enumClasses) {
-            currentStates.put(clazz, clazz.getEnumConstants()[0]);
+            values.put(clazz, EnumToMutable.translate(clazz));
+            states.put(clazz, clazz.getEnumConstants()[0]);
         }
     }
 
     /**
-     * Sets the state for a given enum type
-     * @param <E> The enum type
-     * @param state The state to set
-     */
-    public <E extends Enum<E>> void setState(E state) {
-        // Check if a null state is attempting to be set
-        if (state == null) {
-            System.err.println("ERROR: Attempted to set null state for subystem " + getName());
-            return;
-        }
-
-        currentStates.put(state.getDeclaringClass(), state);
-    }
-
-    /**
-     * Gets the current state for a given enum class
-     * @param <E> The enum type
-     * @param stateClass The class of the enum
-     * @return The current state, or the first enum constant if no state is set
+     * Gets the current state for a given enum class.
+     * @param <E> The enum type.
+     * @param stateClass The class of the enum.
+     * @return The current state, or the first enum constant if no state is set.
      */
     public <E extends Enum<E>> E getState(Class<E> stateClass) {
-        Enum<?> state = currentStates.get(stateClass);
-
-        // TBD: Add good comment
+        // Get the state from the enum class
+        Enum<?> state = states.get(stateClass);
+        
+        // Check if the state is null
         if (state == null) {
-            // Log the error
             System.err.println("WARNING: No state found for class: " + stateClass.getSimpleName());
-            SmartDashboard.putBoolean(getName() + " State Error", true);
-
-            // Return the first enum constant as a default state
+            
             E[] enumConstants = stateClass.getEnumConstants();
-            if (enumConstants.length > 0) {
+            if (enumConstants.length > 0) { 
+                // Return the first constant if constants are present
                 return enumConstants[0];
-            } else {
-                // Return null if no enum constants are present
+            } else { 
+                // Return null if no enum constants are found
                 System.err.println("ERROR: No enum constants found for class: " + stateClass.getSimpleName());
                 return null;
             }
         }
 
+        // Return the state
         return stateClass.cast(state);
+    }
+
+    /**
+     * Sets the state for a given enum class.
+     * @param <E> The enum type.
+     * @param state The state to set.
+     */
+    public <E extends Enum<E>> void setState(E state) {
+        // Check if the state is null
+        if (state == null) {
+            System.err.println("ERROR: Attempted to set null state for subystem " + getName());
+            return;
+        }
+
+        // Update the HashMap
+        states.put(state.getDeclaringClass(), state);
+    }
+
+    /**
+     * Retrieves a specified value from a mutable state instance.
+     * @param <T> The enum type.
+     * @param enumClass The original enum class.
+     * @param instanceName The name of the state to retrieve.
+     * @param key The field name to retrieve.
+     * @return The value of the specified field in the state.
+     */
+    public <T extends Enum<T>> Object getStateValue(Class<?> enumClass, String instanceName, String key) {
+        return values.get(enumClass).getInstance(instanceName).get(key);
+    }
+
+    /**
+     * Modifies a value in a Mutable state instance.
+     * @param <T> The type of the value being set.
+     * @param enumClass The original enum class.
+     * @param instanceName The name of the state to modify.
+     * @param key The field name to update.
+     * @param value The new value to set.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Comparable<T>> void modifyStateValue(Class<?> enumClass, String instanceName, String key, T value) {
+        Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
+        mutable.getInstance(instanceName).set(key, value);
     }
 
     /**
@@ -202,7 +235,7 @@ public abstract class Subsystem extends SubsystemBase {
      * Updates the SmartDashboard with current states and motor outputs.
      */
     protected void updateSmartDashboard() {
-        currentStates.forEach((stateClass, state) -> 
+        states.forEach((stateClass, state) -> 
             SmartDashboard.putString(getName() + " " + stateClass.getSimpleName(), state.toString()));
         motors.forEach((name, motor) -> 
             SmartDashboard.putNumber(getName() + " " + name + " Output", motor.get()));

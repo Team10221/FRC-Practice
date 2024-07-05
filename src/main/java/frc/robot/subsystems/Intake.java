@@ -15,15 +15,14 @@ public class Intake extends Subsystem {
         addMotor("angle", new CANSparkMax(IntakeConstants.ANGLE_MOTOR_ID, MotorType.kBrushless));
         addMotor("intake", new CANSparkMax(IntakeConstants.INTAKE_MOTOR_ID, MotorType.kBrushless));
         addMotor("feeder", new CANSparkMax(IntakeConstants.FEEDER_MOTOR_ID, MotorType.kBrushless));
-		addPIDValues("angle", AngleMotorPID.class);
-		setName("Intake");
+        addPIDValues("angle", AngleMotorPID.class);
+        setName("Intake");
     }
 
     @Override
     protected void updateMotors() {
-		motors.get("intake").set(getState(IntakeState.class).intakeSpeed);
-		motors.get("feeder").set(getState(IntakeState.class).feederSpeed);
+        motors.get("intake").set(getState(IntakeState.class).intakeSpeed);
+        motors.get("feeder").set(getState(IntakeState.class).feederSpeed);
         setPIDReference("angle", getState(IntakeState.class).anglePosition, ControlType.kPosition);
-		setState(IntakeState.INTAKE);
     }
 }
