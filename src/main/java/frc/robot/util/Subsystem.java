@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.revrobotics.CANSparkBase;
@@ -298,7 +299,7 @@ public abstract class Subsystem extends SubsystemBase {
      * @param name The motor's name
      * @param constants The PID constants
      */
-    protected void addPIDValues(String name, Class<?> constants) { // TODO: Optional<Double> use?
+    protected void addPIDValues(String name, Class<?> constants) {
         MotorController motor = motors.get(name);
 
         if (name == null) {
@@ -306,30 +307,31 @@ public abstract class Subsystem extends SubsystemBase {
             return;
         }
 
-        double kP = getClassFields(constants, "kP", "P");
-        double kI = getClassFields(constants, "kI", "I");
-        double kD = getClassFields(constants, "kD", "D");
-        double kF = getClassFields(constants, "FF", "ff", "F", "kF");
-        double kIZone = getClassFields(constants, "kIzone", "Izone", "kIz", "Iz", "IZ");
-        double kDFilter = getClassFields(constants, "kDFilter", "DFilter", "kDF", "kDF", "DF");
-        double kMinOutput = getClassFields(constants, "kMinOutput", "MinOutput", "kMin");
-        double kMaxOutput = getClassFields(constants, "kMaxOutput", "MaxOutput", "kMax");
+        Optional<Double> kP = getClassFields(constants, "kP", "P");
+        Optional<Double> kI = getClassFields(constants, "kI", "I");
+        Optional<Double> kD = getClassFields(constants, "kD", "D");
+        Optional<Double> kF = getClassFields(constants, "FF", "ff", "F", "kF");
+        Optional<Double> kIZone = getClassFields(constants, "kIzone", "Izone", "kIz", "Iz", "IZ");
+        Optional<Double> kIAccum = getClassFields(constants, "kIAccum", "IAccum", "Iacc", "Ia", "IA", "kIa");
+        Optional<Double> kDFilter = getClassFields(constants, "kDFilter", "DFilter", "kDF", "kDF", "DF");
+        Optional<Double> kMinOutput = getClassFields(constants, "kMinOutput", "MinOutput", "kMin");
+        Optional<Double> kMaxOutput = getClassFields(constants, "kMaxOutput", "MaxOutput", "kMax");
 
         if (motor instanceof CANSparkBase) {
             SparkPIDController pidController = ((CANSparkBase) motor).getPIDController();
-            pidController.setP(kP);
-            pidController.setI(kI);
-            pidController.setD(kD);
-            pidController.setFF(kF);
-            pidController.setIZone(kIZone);
-            pidController.setDFilter(kDFilter);
-
-            if (kMinOutput < -1.0 || kMinOutput > 1.0 || kMaxOutput < -1.0 || kMaxOutput > 1.0 ) {
-                System.err.println("WARNING: Invalid kMinOutput or kMaxOutput provided, using default values.");
-                kMinOutput = kMaxOutput = 0.0;
-            } else if (kMinOutput != 0.0 || kMaxOutput != 0.0) {
-                pidController.setOutputRange(kMinOutput, kMaxOutput);
-            }
+            
+            kP.ifPresent(pidController::setP);
+            kI.ifPresent(pidController::setI);
+            kD.ifPresent(pidController::setD);
+            kF.ifPresent(pidController::setFF);
+            kIZone.ifPresent(pidController::setIAccum);
+            kIAccum.ifPresent(pidController::setIAccum);
+            kDFilter.ifPresent(pidController::setDFilter);
+            kMinOutput.ifPresent(
+                min -> kMaxOutput.ifPresent(
+                    max -> pidController.setOutputRange(min, max)
+                )
+            );
         }
     }
 
@@ -353,11 +355,12 @@ public abstract class Subsystem extends SubsystemBase {
      * @param fieldName The static field name
      * @return A Double object representing the double field if present, null otherwise
      */
-    private Double getClassField(Class<?> clazz, String fieldName) {
+    @SuppressWarnings("unchecked")
+    private <T> Optional<T> getClassField(Class<?> clazz, String fieldName) {
         try {
-            return clazz.getField(fieldName).getDouble(null);
+            return Optional.ofNullable((T) clazz.getField(fieldName).get(null));
         } catch (Exception e) {
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -367,14 +370,14 @@ public abstract class Subsystem extends SubsystemBase {
      * @param fieldNames The possible field names as arguments
      * @return A double value for the first valid field supplied as an argument
      */
-    private double getClassFields(Class<?> clazz, String... fieldNames) {
+    private <T> Optional<T> getClassFields(Class<?> clazz, String... fieldNames) {
         for (String fieldName : fieldNames) {
-            Double field = getClassField(clazz, fieldName);
-            if (field != null) {
+            Optional<T> field = getClassField(clazz, fieldName);
+            if (field.isPresent()) {
                 return field;
             }
         }
-        return 0.0;
+        return Optional.empty();
     }
 
     /**
