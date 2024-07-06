@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkMax;
@@ -333,6 +334,49 @@ public abstract class Subsystem extends SubsystemBase {
                     max -> pidController.setOutputRange(min, max)
                 )
             );
+        } else if (motor instanceof TalonFX) {
+            TalonFXConfiguration config = new TalonFXConfiguration();
+
+            kP.ifPresent(P -> config.Slot0.kP = P);
+            kI.ifPresent(I -> config.Slot0.kI = I);
+            kD.ifPresent(D -> config.Slot0.kD = D);
+
+            ((TalonFX) motor).getConfigurator().apply(config);
+        } else {
+            System.err.println("ERROR: Unsupported motor type for '" + name + "' in addPIDValues");
+            return;
+        }
+    }
+
+    /**
+     * Adds PID values to a motor's PID controller with timeout, only supports TalonFX
+     * @param name The motor's name
+     * @param constants The PID constants
+     * @param timeout The timeout in seconds
+     */
+    protected void addPIDValues(String name, Class<?> constants, double timeout) {
+        MotorController motor = motors.get(name);
+
+        if (name == null) {
+            System.err.println("ERROR: Attempted to add PID values with null name to subsystem " + getName());
+            return;
+        }
+
+        Optional<Double> kP = getClassFields(constants, "kP", "P");
+        Optional<Double> kI = getClassFields(constants, "kI", "I");
+        Optional<Double> kD = getClassFields(constants, "kD", "D");
+
+        if (motor instanceof TalonFX) {
+            TalonFXConfiguration config = new TalonFXConfiguration();
+
+            kP.ifPresent(P -> config.Slot0.kP = P);
+            kI.ifPresent(I -> config.Slot0.kI = I);
+            kD.ifPresent(D -> config.Slot0.kD = D);
+
+            ((TalonFX) motor).getConfigurator().apply(config, timeout);
+        } else {
+            System.err.println("ERROR: Unsupported motor type for '" + name + "' in addPIDValues with timeout");
+            return;
         }
     }
 
