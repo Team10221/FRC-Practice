@@ -16,24 +16,24 @@ public class Shooter extends Subsystem {
 
         // creates 3 new motors using the addMotor function
         // added to the motors hashmap, the key being the motor name and the value being the motor itself
-        addMotor("top", new CANSparkMax(ShooterConstants.SHOOTER_MOTOR_UP_ID, MotorType.kBrushless));
-        addMotor("bottom", new CANSparkMax(ShooterConstants.SHOOTER_MOTOR_DOWN_ID, MotorType.kBrushless));
-        addMotor("angle", new CANSparkMax(ShooterConstants.ANGLE_MOTOR_ID, MotorType.kBrushless));
+        addMotor("shooterTopMotor", new CANSparkMax(ShooterConstants.SHOOTER_MOTOR_UP_ID, MotorType.kBrushless));
+        addMotor("shooterBottomMotor", new CANSparkMax(ShooterConstants.SHOOTER_MOTOR_DOWN_ID, MotorType.kBrushless));
+        addMotor("shooterAngleMotor", new CANSparkMax(ShooterConstants.ANGLE_MOTOR_ID, MotorType.kBrushless));
 
         // sets the name of the subsystem
         setName("Shooter");
 
         // configures motors after decleration
         // includes setting PIDs, inverting, etc...
-        motors.get("bottom").setInverted(true);
-        addPIDValues("angle", AngleMotorPID.class);
+        motors.get("shooterBottomMotor").setInverted(true);
+        addPIDValues("shooterAngleMotor", AngleMotorPID.class);
     }
 
     // for each motor
     @Override
     protected void updateMotors() {
-        motors.get("top").set(getState(ShooterState.class).topSpeed);
-        motors.get("bottom").set(getState(ShooterState.class).bottomSpeed);
-        setPIDReference("angle", getState(AngleState.class).position, Control.POSITION);
+        motors.get("shooterTopMotor").set(getState(ShooterState.class).topSpeed);
+        motors.get("shooterBottomMotor").set(getState(ShooterState.class).bottomSpeed);
+        setPIDReference("shooterAngleMotor", getState(AngleState.class).position, Control.POSITION);
     }
 }

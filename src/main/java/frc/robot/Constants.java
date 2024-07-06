@@ -73,4 +73,24 @@ public final class Constants {
 			}
 		}
 	}
+
+	public static class DeflectorConstants {
+		public static final int DEFLECTOR_ID = 6;
+
+		public static class AngleMotorPID {
+			public static final double kP = 0.0;
+			public static final double kI = 0.0;
+			public static final double kD = 0.0;
+		}
+		
+		public static enum DeflectorState {
+			UP(0.0),
+			DOWN(0.0);
+
+			public final double position;
+			DeflectorState(double position) {
+				this.position = position;
+			}
+		}
+	}
 }
