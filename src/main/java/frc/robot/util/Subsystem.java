@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkPIDController;
@@ -313,7 +314,7 @@ public abstract class Subsystem extends SubsystemBase {
         Optional<Double> kF = getClassFields(constants, "FF", "ff", "F", "kF");
         Optional<Double> kIZone = getClassFields(constants, "kIzone", "Izone", "kIz", "Iz", "IZ");
         Optional<Double> kIAccum = getClassFields(constants, "kIAccum", "IAccum", "Iacc", "Ia", "IA", "kIa");
-        Optional<Double> kDFilter = getClassFields(constants, "kDFilter", "DFilter", "kDF", "kDF", "DF");
+        Optional<Double> kDFilter = getClassFields(constants, "kDFilter", "DFilter", "kDF", "kDf", "DF", "Df");
         Optional<Double> kMinOutput = getClassFields(constants, "kMinOutput", "MinOutput", "kMin");
         Optional<Double> kMaxOutput = getClassFields(constants, "kMaxOutput", "MaxOutput", "kMax");
 
