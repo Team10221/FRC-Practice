@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import frc.robot.Constants.IntakeConstants;
@@ -27,7 +26,7 @@ public class Intake extends Subsystem {
         motors.get("feeder").set(getState(IntakeState.class).feederSpeed);
 
         // example use of dynamic states
-        setPIDReference("angle", getStateValue(IntakeState.class, "anglePosition"), ControlType.kPosition);
+        setPIDReference("angle", getStateValue(IntakeState.class, "anglePosition"), Control.POSITION);
     }
 
     // example function showing dynamic state control

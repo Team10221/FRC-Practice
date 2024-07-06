@@ -9,6 +9,10 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.ControlRequest;
+import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkMax;
@@ -386,12 +390,35 @@ public abstract class Subsystem extends SubsystemBase {
      * @param setpoint The PID setpoint
      * @param controlType The PID controller mode
      */
-    protected void setPIDReference(String name, double setpoint, ControlType controlType) {
+    protected void setPIDReference(String name, double setpoint, Control controlType) {
         MotorController motor = motors.get(name);
 
-        if (motor instanceof CANSparkMax) {
-            ((CANSparkMax) motor).getPIDController().setReference(setpoint, controlType);
+        if (motor instanceof CANSparkBase) {
+            ControlType revControlType = controlType == Control.POSITION ? ControlType.kPosition :
+                                         controlType == Control.VELOCITY ? ControlType.kVelocity :
+                                         ControlType.kVoltage;
+            ((CANSparkBase) motor).getPIDController().setReference(setpoint, revControlType);
+        } else if (motor instanceof TalonFX) {
+            ControlRequest ctreRequest = controlType == Control.POSITION ? new PositionVoltage(setpoint) :
+                                         controlType == Control.VELOCITY ? new VelocityVoltage(setpoint) :
+                                         new VoltageOut(setpoint);
+            ((TalonFX) motor).setControl(ctreRequest);
         }
+    }
+
+    /**
+     * An enum representing various control types for use as an argument to {@code setPIDReference}.
+     * <pre>{@code
+     * enum Control {
+     *     POSITION,
+     *     VELOCITY,
+     *     VOLTAGE
+     * }</pre>
+     */
+    protected enum Control {
+        POSITION,
+        VELOCITY,
+        VOLTAGE
     }
 
     /**

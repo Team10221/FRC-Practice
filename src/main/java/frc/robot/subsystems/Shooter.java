@@ -7,7 +7,6 @@ import frc.robot.Constants.ShooterConstants.AngleMotorPID;
 import frc.robot.util.Subsystem;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 public class Shooter extends Subsystem {
@@ -35,6 +34,6 @@ public class Shooter extends Subsystem {
     protected void updateMotors() {
         motors.get("top").set(getState(ShooterState.class).topSpeed);
         motors.get("bottom").set(getState(ShooterState.class).bottomSpeed);
-        setPIDReference("angle", getState(AngleState.class).position, ControlType.kPosition);
+        setPIDReference("angle", getState(AngleState.class).position, Control.POSITION);
     }
 }
