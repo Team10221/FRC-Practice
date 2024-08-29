@@ -140,6 +140,21 @@ public abstract class Subsystem extends SubsystemBase {
     }
 
     /**
+     * Retrieves the value from the current state when there's only one field and state enum.
+     * @param <T> The type of the value to retrieve.
+     * @return The value of the single field in the current state, or null if an error occurs.
+     */
+    public <T extends Comparable<T>> T getStateValue() {
+        if (values.size() != 1) {
+            System.err.println("ERROR: Improper use for getStateValue. Exiting.");
+            return null;
+        }
+
+        Class<? extends Enum<?>> enumClass = values.entrySet().iterator().next().getKey();
+        return getStateValue(enumClass);
+    }
+
+    /**
      * Retrieves a specified value from the current state for an enum.
      * @param <T> The enum type.
      * @param enumClass The original enum class.
@@ -157,6 +172,22 @@ public abstract class Subsystem extends SubsystemBase {
 
         Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
         return mutable.getInstance(currentState.name()).get(key);
+    }
+
+    /**
+     * Retrieves a specified value from the current state for a single state is being used by the subsystem.
+     * @param <T> The enum type.
+     * @param key The field name to retrieve.
+     * @return
+     */
+    public <T extends Comparable<T>> T getStateValue(String key) {
+        if (values.size() != 1) {
+            System.err.println("Improper usage for getStateValue. Exiting.");
+            return null;
+        }
+
+        Class<? extends Enum<?>> enumClass = values.entrySet().iterator().next().getKey();
+        return getStateValue(enumClass, key);
     }
 
     /**
@@ -199,6 +230,23 @@ public abstract class Subsystem extends SubsystemBase {
     }
 
     /**
+     * Retrieves a specified value from a mutable state instance if only one state enum is present.
+     * @param <T> The type of the value to retrieve.
+     * @param key The field name to retrieve.
+     * @param instanceName Optional. The name of the state to retrieve. If null, uses the current state.
+     * @return The value of the specified field in the state.
+     */
+    public <T extends Comparable<T>> T getStateValue(String key, String instanceName) {
+        if (values.size() != 1) {
+            System.err.println("ERROR: Improper use for getStateValue. Exiting.");
+            return null;
+        }
+
+        Class<? extends Enum<?>> enumClass = values.entrySet().iterator().next().getKey();
+        return getStateValue(enumClass, key, instanceName);
+    }
+
+    /**
      * Modifies the value of the current state when there's only one field.
      * @param <T> The type of the value to set.
      * @param enumClass The enum class representing the state.
@@ -230,8 +278,53 @@ public abstract class Subsystem extends SubsystemBase {
         instance.set(singleFieldName, value);
     }
 
+    /**
+     * Modifies the value of the current state when there's only one field and one state.
+     * @param <T> The type of the value to set.
+     * @param value The new value to set for the single field.
+     */
     @SuppressWarnings("unchecked")
-    public <T extends Comparable<T>> void modifyStateValue(Class<? extends Enum<?>> enumClass, String key, T value) {
+    public <T extends Comparable<T>> void modifyStateValue(T value) { // TODO: Rework approach
+        if (values.size() != 1) {
+            System.err.println("ERROR: Improper usage for modifyStateValue. Exiting");
+            return;
+        }
+
+        Class<? extends Enum<?>> enumClass = values.entrySet().iterator().next().getKey();
+        Enum<?> currentState = states.get(enumClass);
+
+        if (currentState == null) {
+            System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
+            return;
+        }
+
+        Mutable<T> mutable = (Mutable<T>) values.entrySet().iterator().next().getValue();
+        Mutable.Instance<T> instance = mutable.getInstance(currentState.name());
+
+        if (instance == null) {
+            System.err.print("ERROR: No instance found for state: " + currentState.name());
+            return;
+        }
+
+        Set<String> fieldNames = instance.getKeys();
+        if (fieldNames.size() != 1) {
+            System.err.println("ERROR: Expected exactly one field, but found " + fieldNames.size() + " for state: " + currentState.name());
+            return;
+        }
+
+        String singleFieldName = fieldNames.iterator().next();
+        instance.set(singleFieldName, value);
+    }
+
+    /**
+     * Modifies a value of the current state.
+     * @param <T> The type of the value to set.
+     * @param enumClass The enum class representing the state.
+     * @param key The field name.
+     * @param value The value to set.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Comparable<T>> void modifyStateValue(Class<? extends Enum<?>> enumClass, String key, T value) { // TODO: Better error checking
         Enum<?> currentState = states.get(enumClass);
 
         if (currentState == null) {
@@ -240,6 +333,31 @@ public abstract class Subsystem extends SubsystemBase {
         }
 
         Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
+        mutable.getInstance(currentState.name()).set(key, value);
+    }
+
+    /**
+     * Modifies a value of the current state for when only one state is being used by the subsytem.
+     * @param <T> The type of the value to set.
+     * @param key The field name.
+     * @param value The value to set.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Comparable<T>> void modifyStateValue(String key, T value) { // TODO: Better error checking
+        if (values.size() != 1) {
+            System.err.println("ERROR: Improper usage for modifyStateValue. Exiting");
+            return;
+        }
+
+        Class<? extends Enum<?>> enumClass = values.entrySet().iterator().next().getKey();
+        Enum<?> currentState = states.get(enumClass);
+
+        if (currentState == null) {
+            System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
+            return;
+        }
+
+        Mutable<T> mutable = (Mutable<T>) values.entrySet().iterator().next().getValue();
         mutable.getInstance(currentState.name()).set(key, value);
     }
 
@@ -254,6 +372,52 @@ public abstract class Subsystem extends SubsystemBase {
     @SuppressWarnings("unchecked")
     public <T extends Comparable<T>> void modifyStateValue(Class<? extends Enum<?>> enumClass, String key, T value, String instanceName) {
         Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
+        if (mutable == null) {
+            System.err.println("ERROR: No Mutable found for class " + enumClass.getSimpleName());
+            return;
+        }
+
+        String stateName;
+        if (instanceName == null) {
+            System.err.println("WARNING: provided instanceName is null, defaulting to current state name");
+
+            Enum<?> currentState = states.get(enumClass);
+            if (currentState == null) {
+                System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
+                return;
+            }
+            stateName = currentState.name();
+        } else {
+            stateName = instanceName;
+        }
+
+        Mutable.Instance<T> instance = mutable.getInstance(stateName);
+        if (instance == null) {
+            System.err.println("ERROR: No instance found with name " + stateName);
+            return;
+        }
+
+        instance.set(key, value);
+    }
+
+    /**
+     * Modifies a value in a Mutable state instance when only one instance is present. <p>
+     * Do NOT use this if a subsystem uses multiple states.
+     * @param <T> The type of the value being set.
+     * @param key The field name to update.
+     * @param value The new value to set.
+     * @param instanceName Optional. The name of the state to modify. If null, modifies the current state.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Comparable<T>> void modifyStateValue(String key, T value, String instanceName) {
+        if (values.size() != 1) {
+            System.err.println("ERROR: Improper usage for modifyStateValue. Exiting");
+            return;
+        }
+
+        Class<? extends Enum<?>> enumClass = values.entrySet().iterator().next().getKey();
+        Mutable<T> mutable = (Mutable<T>) values.entrySet().iterator().next().getValue();
+
         if (mutable == null) {
             System.err.println("ERROR: No Mutable found for class " + enumClass.getSimpleName());
             return;
