@@ -25,12 +25,12 @@ public final class Constants {
 			IDLE(0.0, 0.0, IntakeConstants.ANGLE_UP_POSITION),
 			INTAKE(IntakeConstants.INTAKE_SPEED, IntakeConstants.FEED_SPEED, IntakeConstants.ANGLE_DOWN_POSITION),
 			OUTTAKE(IntakeConstants.OUTTAKE_SPEED, -IntakeConstants.FEED_SPEED, IntakeConstants.ANGLE_DOWN_POSITION);
-	
+
 			public final double intakeSpeed, feederSpeed, anglePosition;
-	
+
 			IntakeState(double intakeSpeed, double feederSpeed, double anglePosition) {
-				this.intakeSpeed = intakeSpeed; 
-				this.feederSpeed = feederSpeed; 
+				this.intakeSpeed = intakeSpeed;
+				this.feederSpeed = feederSpeed;
 				this.anglePosition = anglePosition;
 			}
 		}
@@ -68,7 +68,7 @@ public final class Constants {
 			public final double topSpeed, bottomSpeed;
 
 			ShooterState(double topSpeed, double bottomSpeed) {
-				this.topSpeed = topSpeed; 
+				this.topSpeed = topSpeed;
 				this.bottomSpeed = bottomSpeed;
 			}
 		}
@@ -82,12 +82,13 @@ public final class Constants {
 			public static final double kI = 0.0;
 			public static final double kD = 0.0;
 		}
-		
+
 		public static enum DeflectorState {
 			UP(0.0),
 			DOWN(0.0);
 
 			public final double position;
+
 			DeflectorState(double position) {
 				this.position = position;
 			}

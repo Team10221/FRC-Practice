@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * A mutable data structure that mimics enum-like behavior.
  */
-public class Mutable<T extends Comparable<T>> {
+public class Mutable<T> {
 
     /**
      * Builder class for creating Instance objects.

@@ -50,8 +50,7 @@ public abstract class Subsystem<T extends Enum<T>> extends SubsystemBase {
 
     protected void updateSmartDashboard() {
         SmartDashboard.putString(getName() + " State", currentState.toString());
-        motors.forEach((name, motor) -> 
-            SmartDashboard.putNumber(getName() + " " + " Output", motor.get()));
+        motors.forEach((name, motor) -> SmartDashboard.putNumber(getName() + " " + " Output", motor.get()));
     }
 
     public void stopMotors() {

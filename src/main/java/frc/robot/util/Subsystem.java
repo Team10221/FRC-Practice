@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
@@ -26,8 +27,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * Abstract base class for robot subsystems.
  */
 public abstract class Subsystem extends SubsystemBase {
-    private final Map<Class<? extends Enum<?>>, Mutable<? extends Comparable<?>>> values;
+    private final Map<Class<? extends Enum<?>>, Map<Enum<?>, Map<Integer, Object>>> hooks;
+    private final Map<Class<? extends Enum<?>>, Mutable<?>> values;
     private final Map<Class<? extends Enum<?>>, Enum<?>> states;
+
     public final Map<String, MotorController> motors;
 
     /**
@@ -36,6 +39,7 @@ public abstract class Subsystem extends SubsystemBase {
      */
     @SafeVarargs
     public Subsystem(Class<? extends Enum<?>>... enumClasses) {
+        this.hooks = new HashMap<>();
         this.values = new HashMap<>();
         this.states = new HashMap<>();
         this.motors = new HashMap<>();
@@ -54,7 +58,7 @@ public abstract class Subsystem extends SubsystemBase {
      * @return A Mutable object representing the enum.
      */
     @SuppressWarnings("unchecked")
-    public static <E extends Enum<E>, T extends Comparable<T>> Mutable<T> translate(Class<? extends Enum<?>> enumClass) {
+    public static <E extends Enum<E>, T> Mutable<T> translate(Class<? extends Enum<?>> enumClass) {
         Mutable<T> mutable = new Mutable<>();
         for (Enum<?> enumConstant: enumClass.getEnumConstants()) {
             Mutable.Builder<T> builder = new Mutable.Builder<>(enumConstant.name());
@@ -115,7 +119,7 @@ public abstract class Subsystem extends SubsystemBase {
      * @return The value of the single field in the current state, or null if an error occurs.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Comparable<T>> T getStateValue(Class<?> enumClass) {
+    public <T> T getStateValue(Class<?> enumClass) {
         Enum<?> currentState = states.get(enumClass);
         if (currentState == null) {
             System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
@@ -136,7 +140,12 @@ public abstract class Subsystem extends SubsystemBase {
         }
 
         String singleFieldName = fieldNames.iterator().next();
-        return instance.get(singleFieldName);
+        T value = instance.get(singleFieldName);
+        if (value instanceof Supplier) {
+            return ((Supplier<T>) value).get();
+        }
+
+        return value;
     }
 
     /**
@@ -144,7 +153,7 @@ public abstract class Subsystem extends SubsystemBase {
      * @param <T> The type of the value to retrieve.
      * @return The value of the single field in the current state, or null if an error occurs.
      */
-    public <T extends Comparable<T>> T getStateValue() {
+    public <T> T getStateValue() {
         if (values.size() != 1) {
             System.err.println("ERROR: Improper use for getStateValue. Exiting.");
             return null;
@@ -162,16 +171,20 @@ public abstract class Subsystem extends SubsystemBase {
      * @return The value of the specified field in the state.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Comparable<T>> T getStateValue(Class<?> enumClass, String key) {
+    public <T> T getStateValue(Class<?> enumClass, String key) {
         Enum<?> currentState = states.get(enumClass);
-
         if (currentState == null) {
             System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
             return null;
         }
 
         Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
-        return mutable.getInstance(currentState.name()).get(key);
+        T value = mutable.getInstance(currentState.name()).get(key);
+        if (value instanceof Supplier) {
+            return ((Supplier<T>) value).get();
+        }
+
+        return value;
     }
 
     /**
@@ -180,7 +193,7 @@ public abstract class Subsystem extends SubsystemBase {
      * @param key The field name to retrieve.
      * @return
      */
-    public <T extends Comparable<T>> T getStateValue(String key) {
+    public <T> T getStateValue(String key) {
         if (values.size() != 1) {
             System.err.println("Improper usage for getStateValue. Exiting.");
             return null;
@@ -199,7 +212,7 @@ public abstract class Subsystem extends SubsystemBase {
      * @return The value of the specified field in the state.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Comparable<T>> T getStateValue(Class<? extends Enum<?>> enumClass, String key, String instanceName) {
+    public <T> T getStateValue(Class<? extends Enum<?>> enumClass, String key, String instanceName) {
         Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
         if (mutable == null) {
             System.err.println("ERROR: No Mutable found for enum class " + enumClass.getSimpleName());
@@ -226,7 +239,12 @@ public abstract class Subsystem extends SubsystemBase {
             return null;
         }
 
-        return instance.get(key);
+        T value = instance.get(key);
+        if (value instanceof Supplier) {
+            return ((Supplier<T>) value).get();
+        }
+
+        return value;
     }
 
     /**
@@ -236,7 +254,7 @@ public abstract class Subsystem extends SubsystemBase {
      * @param instanceName Optional. The name of the state to retrieve. If null, uses the current state.
      * @return The value of the specified field in the state.
      */
-    public <T extends Comparable<T>> T getStateValue(String key, String instanceName) {
+    public <T> T getStateValue(String key, String instanceName) {
         if (values.size() != 1) {
             System.err.println("ERROR: Improper use for getStateValue. Exiting.");
             return null;
@@ -253,7 +271,7 @@ public abstract class Subsystem extends SubsystemBase {
      * @param value The new value to set for the single field.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Comparable<T>> void modifyStateValue(Class<? extends Enum<?>> enumClass, T value) {
+    public <T> void modifyStateValue(Class<? extends Enum<?>> enumClass, T value) {
         Enum<?> currentState = states.get(enumClass);
         if (currentState == null) {
             System.err.println("ERROR: No current state found for class: " + enumClass.getSimpleName());
@@ -284,7 +302,7 @@ public abstract class Subsystem extends SubsystemBase {
      * @param value The new value to set for the single field.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Comparable<T>> void modifyStateValue(T value) { // TODO: Rework approach
+    public <T> void modifyStateValue(T value) { // TODO: Rework approach
         if (values.size() != 1) {
             System.err.println("ERROR: Improper usage for modifyStateValue. Exiting");
             return;
@@ -324,7 +342,7 @@ public abstract class Subsystem extends SubsystemBase {
      * @param value The value to set.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Comparable<T>> void modifyStateValue(Class<? extends Enum<?>> enumClass, String key, T value) { // TODO: Better error checking
+    public <T> void modifyStateValue(Class<? extends Enum<?>> enumClass, String key, T value) { // TODO: Better error checking
         Enum<?> currentState = states.get(enumClass);
 
         if (currentState == null) {
@@ -343,7 +361,7 @@ public abstract class Subsystem extends SubsystemBase {
      * @param value The value to set.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Comparable<T>> void modifyStateValue(String key, T value) { // TODO: Better error checking
+    public <T> void modifyStateValue(String key, T value) { // TODO: Better error checking
         if (values.size() != 1) {
             System.err.println("ERROR: Improper usage for modifyStateValue. Exiting");
             return;
@@ -370,7 +388,7 @@ public abstract class Subsystem extends SubsystemBase {
      * @param instanceName Optional. The name of the state to modify. If null, modifies the current state.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Comparable<T>> void modifyStateValue(Class<? extends Enum<?>> enumClass, String key, T value, String instanceName) {
+    public <T> void modifyStateValue(Class<? extends Enum<?>> enumClass, String key, T value, String instanceName) {
         Mutable<T> mutable = (Mutable<T>) values.get(enumClass);
         if (mutable == null) {
             System.err.println("ERROR: No Mutable found for class " + enumClass.getSimpleName());
@@ -409,7 +427,7 @@ public abstract class Subsystem extends SubsystemBase {
      * @param instanceName Optional. The name of the state to modify. If null, modifies the current state.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Comparable<T>> void modifyStateValue(String key, T value, String instanceName) {
+    public <T> void modifyStateValue(String key, T value, String instanceName) {
         if (values.size() != 1) {
             System.err.println("ERROR: Improper usage for modifyStateValue. Exiting");
             return;
@@ -444,6 +462,70 @@ public abstract class Subsystem extends SubsystemBase {
         }
 
         instance.set(key, value);
+    }
+
+    /**
+     * Creates a hook for an object, linking it by reference.
+     * For the enum constant provided, a hook is created for the first associated value
+     * @param enumConstant The enum constant to hook
+     * @param value The value to hook
+     */
+    protected void setHook(Enum<?> enumConstant, Object value) {
+        hooks.computeIfAbsent(enumConstant.getDeclaringClass(), k -> new HashMap<>())
+            .computeIfAbsent(enumConstant, k -> new HashMap<>())
+            .put(0, value);
+        updateHooks();
+    }
+
+    /**
+     * Removes all hooks for a given enum constant
+     * @param enumConstant The enum constant to remove hooks.
+     */
+    protected void removeHooks(Enum<?> enumConstant) {
+        hooks.get(enumConstant.getDeclaringClass()).remove(enumConstant);
+    }
+
+    /**
+     * Creates a hook for an object, linking it by reference.
+     * @param enumConstant The enum constant to hook
+     * @param value The value to hook
+     * @param index The index of the value to hook
+     */
+    protected void setHook(Enum<?> enumConstant, Object value, Integer index) {
+        hooks.computeIfAbsent(enumConstant.getDeclaringClass(), k -> new HashMap<>())
+            .computeIfAbsent(enumConstant, k -> new HashMap<>())
+            .put(index, value);
+        updateHooks();
+    }
+
+    /**
+     * Removes a hook from an enum constant.
+     * @param enumConstant The enum constant to remove hooks from.
+     * @param index The hooked index to remove.
+     */
+    protected void removeHook(Enum<?> enumConstant, Integer index) {
+        hooks.get(enumConstant.getDeclaringClass()).get(enumConstant).remove(index);
+    }
+
+    /**
+     * An internal method to update values from hooks
+     */
+    private void updateHooks() { // TODO: Refactor maybe?
+        for (Class<? extends Enum<?>> key : hooks.keySet()) {
+            Map<Enum<?>, Map<Integer, Object>> map = hooks.get(key);
+            for (Enum<?> enumConstant : map.keySet()) {
+                Map<Integer, Object> hook = map.get(enumConstant);
+                for (Integer idx : hook.keySet()) {
+                    Object obj = hook.get(idx);
+                    if (obj instanceof Double) {
+                        modifyStateValue(enumConstant.getDeclaringClass(), enumConstant.name(), obj);
+                    } else {
+                        System.err.println("ERROR: Attempted to hook a non-double object");
+                        return;
+                    }
+                }
+            }
+        }
     }
 
     /**

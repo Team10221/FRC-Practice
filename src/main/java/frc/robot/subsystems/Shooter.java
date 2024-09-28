@@ -10,12 +10,15 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 public class Shooter extends Subsystem {
+    private Double shooterAngle = getState(AngleState.class).position;
+
     public Shooter() {
         // the constructor is supplied with 2 enum classes, one per motor
         super(AngleState.class, ShooterState.class);
 
         // creates 3 new motors using the addMotor function
-        // added to the motors hashmap, the key being the motor name and the value being the motor itself
+        // added to the motors hashmap, the key being the motor name and the value being
+        // the motor itself
         addMotor("shooterTopMotor", new CANSparkMax(ShooterConstants.SHOOTER_MOTOR_UP_ID, MotorType.kBrushless));
         addMotor("shooterBottomMotor", new CANSparkMax(ShooterConstants.SHOOTER_MOTOR_DOWN_ID, MotorType.kBrushless));
         addMotor("shooterAngleMotor", new CANSparkMax(ShooterConstants.ANGLE_MOTOR_ID, MotorType.kBrushless));
