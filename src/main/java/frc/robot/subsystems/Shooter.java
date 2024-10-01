@@ -23,9 +23,6 @@ public class Shooter extends Subsystem {
         addMotor("shooterBottomMotor", new CANSparkMax(ShooterConstants.SHOOTER_MOTOR_DOWN_ID, MotorType.kBrushless));
         addMotor("shooterAngleMotor", new CANSparkMax(ShooterConstants.ANGLE_MOTOR_ID, MotorType.kBrushless));
 
-        // sets the name of the subsystem
-        setName("Shooter");
-
         // configures motors after decleration
         // includes setting PIDs, inverting, etc...
         motors.get("shooterBottomMotor").setInverted(true);

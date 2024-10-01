@@ -13,7 +13,6 @@ public class Deflector extends Subsystem {
         super(DeflectorState.class);
         addMotor("deflectorAngle", new CANSparkMax(DeflectorConstants.DEFLECTOR_ID, MotorType.kBrushless));
         addPIDValues("deflectorAngle", AngleMotorPID.class);
-        setName("deflector");
     }
 
     @Override

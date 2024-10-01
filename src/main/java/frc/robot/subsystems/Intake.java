@@ -18,7 +18,6 @@ public class Intake extends Subsystem {
         addMotor("intakeAngleMotor", new CANSparkMax(IntakeConstants.ANGLE_MOTOR_ID, MotorType.kBrushless));
         addMotor("intakeFeederMotor", new CANSparkMax(IntakeConstants.FEEDER_MOTOR_ID, MotorType.kBrushless));
         addPIDValues("intakeAngle", AngleMotorPID.class);
-        setName("Intake");
     }
 
     @Override

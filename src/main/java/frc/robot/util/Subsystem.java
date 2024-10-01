@@ -48,6 +48,8 @@ public abstract class Subsystem extends SubsystemBase {
             values.put(clazz, translate(clazz));
             states.put(clazz, clazz.getEnumConstants()[0]);
         }
+
+        setName(this.getClass().getName().toLowerCase());
     }
 
     /**
