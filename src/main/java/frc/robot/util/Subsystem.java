@@ -34,7 +34,7 @@ public abstract class Subsystem extends SubsystemBase {
     public final Map<String, MotorController> motors;
 
     /**
-     * Constructs a Subsystem with initial states and values for the given enum classes.
+     *Constructs a Subsystem with initial states and values for the given enum classes.
      * @param enumClasses The enum classes to initialize states and values from.
      */
     @SafeVarargs
@@ -46,7 +46,7 @@ public abstract class Subsystem extends SubsystemBase {
 
         for (Class <? extends Enum<?>> clazz : enumClasses) {
             values.put(clazz, translate(clazz));
-            states.put(clazz, clazz.getEnumConstants()[0]);
+      states.put(clazz, clazz.getEnumConstants()[0]);
         }
 
         setName(this.getClass().getName().toLowerCase());
