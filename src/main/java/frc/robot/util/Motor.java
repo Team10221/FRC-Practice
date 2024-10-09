@@ -1,7 +1,6 @@
 package frc.robot.util;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.ControlRequest;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -38,6 +37,31 @@ public class Motor {
     this.adapter = adapter;
   }
 
+  public static Motor kraken(int id) {
+    TalonFX kraken = new TalonFX(id);
+    return new Motor(kraken, new TalonFXAdapter(kraken));
+  }
+
+  public static Motor kraken(int id, String CANBus) {
+    TalonFX kraken = new TalonFX(id, CANBus);
+    return new Motor(kraken, new TalonFXAdapter(kraken));
+  }
+
+  public static Motor falcon(int id) {
+    TalonFX falcon = new TalonFX(id);
+    return new Motor(falcon, new TalonFXAdapter(falcon));
+  }
+
+  public static Motor falcon(int id, String CANBus) {
+    TalonFX falcon = new TalonFX(id, CANBus);
+    return new Motor(falcon, new TalonFXAdapter(falcon));
+  }
+
+  public static Motor neo(int id) {
+    CANSparkMax neo = new CANSparkMax(id, MotorType.kBrushless);
+    return new Motor(neo, new SparkBaseAdapter(neo));
+  }
+
   public void setPID(PID pid) {
     this.pid = pid;
     adapter.setPID(pid);
@@ -67,6 +91,10 @@ public class Motor {
     return motor;
   }
 
+  public PID getPID() {
+    return pid;
+  }
+
   public static class SparkBaseAdapter implements MotorAdapter {
     private CANSparkBase motor;
 
@@ -82,13 +110,12 @@ public class Motor {
     }
 
     public void setReference(double reference, Control controlType) {
-      ControlType type = switch (controlType) {
-        case POSITION -> ControlType.kPosition;
-        case VELOCITY -> ControlType.kVelocity;
-        case VOLTAGE -> ControlType.kVoltage;
-      };
-
-      motor.getPIDController().setReference(reference, type);
+      motor.getPIDController().setReference(reference,
+          switch (controlType) {
+            case POSITION -> ControlType.kPosition;
+            case VELOCITY -> ControlType.kVelocity;
+            case VOLTAGE -> ControlType.kVoltage;
+          });
     }
 
     public double getPosition() {
@@ -112,78 +139,16 @@ public class Motor {
     }
 
     public void setReference(double reference, Control controlType) {
-      ControlRequest request = switch (controlType) {
-        case POSITION -> new PositionVoltage(reference);
-        case VELOCITY -> new VelocityVoltage(reference);
-        case VOLTAGE -> new VoltageOut(reference);
-      };
-
-      motor.setControl(request);
+      motor.setControl(
+          switch (controlType) {
+            case POSITION -> new PositionVoltage(reference);
+            case VELOCITY -> new VelocityVoltage(reference);
+            case VOLTAGE -> new VoltageOut(reference);
+          });
     }
 
     public double getPosition() {
       return motor.getPosition().getValue();
     }
   }
-
-  /*
-   * public void addPIDValues() {
-   * if (motor instanceof CANSparkBase) {
-   * SparkPIDController pidController = ((CANSparkBase) motor).getPIDController();
-   * pidController.setP(pid.getP());
-   * pidController.setI(pid.getI());
-   * pidController.setD(pid.getD());
-   * } else if (motor instanceof TalonFX) {
-   * TalonFXConfiguration config = new TalonFXConfiguration();
-   * config.Slot0.kP = pid.getP();
-   * config.Slot0.kI = pid.getI();
-   * config.Slot0.kD = pid.getD();
-   * ((TalonFX) motor).getConfigurator().apply(config);
-   * }
-   * }
-   */
-
-  /*
-   * public void setReference(double reference, Control controlType) {
-   * if (motor instanceof CANSparkBase) {
-   * ((CANSparkBase) motor).getPIDController().setReference(reference,
-   * controlType == Control.POSITION ? ControlType.kPosition
-   * : controlType == Control.VELOCITY ? ControlType.kVelocity :
-   * ControlType.kVoltage);
-   * } else if (motor instanceof TalonFX) {
-   * ((TalonFX) motor).setControl(
-   * controlType == Control.POSITION ? new PositionVoltage(reference)
-   * : controlType == Control.VELOCITY ? new VelocityVoltage(reference) : new
-   * VoltageOut(reference));
-   * }
-   * }
-   */
-
-  /*
-   * public double getPosition() {
-   * if (motor instanceof CANSparkBase) {
-   * return ((CANSparkBase) motor).getEncoder().getPosition();
-   * } else if (motor instanceof TalonFX) {
-   * return ((TalonFX) motor).getPosition().getValue();
-   * }
-   * 
-   * return 0;
-   * }
-   */
-
-  /*
-   * public boolean isAtTarget(double target) {
-   * if (motor instanceof CANSparkBase) {
-   * return Math.abs(getPosition() - target) < threshold;
-   * }
-   * 
-   * return false;
-   * }
-   */
-
-  /*
-   * public void setPID(PID pid) {
-   * this.pid = pid;
-   * }
-   */
 }
