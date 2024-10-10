@@ -1,6 +1,9 @@
-package frc.robot.util;
+package frc.lib.subsystem;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.subsystem.util.Mutable;
+import frc.lib.subsystem.util.Mutable.Builder;
+import frc.lib.subsystem.util.Mutable.Instance;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;

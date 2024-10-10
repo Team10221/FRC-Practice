@@ -1,10 +1,10 @@
 package frc.robot.subsystems;
 
+import frc.lib.subsystem.Subsystem;
 import frc.robot.Constants.ShooterConstants;
 import frc.robot.Constants.ShooterConstants.AngleState;
 import frc.robot.Constants.ShooterConstants.ShooterState;
 import frc.robot.Constants.ShooterConstants.AngleMotorPID;
-import frc.robot.util.Subsystem;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkLowLevel.MotorType;

@@ -3,11 +3,11 @@ package frc.robot.subsystems;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
+import frc.lib.subsystem.Subsystem;
 import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.IntakeConstants.IntakeState;
 import frc.robot.Constants.ShooterConstants.AngleState;
 import frc.robot.Constants.IntakeConstants.AngleMotorPID;
-import frc.robot.util.Subsystem;
 
 public class Intake extends Subsystem {
     private Double val = 0.5;

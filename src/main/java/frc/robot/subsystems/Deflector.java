@@ -3,10 +3,10 @@ package frc.robot.subsystems;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
+import frc.lib.subsystem.Subsystem;
 import frc.robot.Constants.DeflectorConstants;
 import frc.robot.Constants.DeflectorConstants.AngleMotorPID;
 import frc.robot.Constants.DeflectorConstants.DeflectorState;
-import frc.robot.util.Subsystem;
 
 public class Deflector extends Subsystem {
     public Deflector() {
