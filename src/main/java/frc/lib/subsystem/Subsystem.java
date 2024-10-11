@@ -2,28 +2,13 @@ package frc.lib.subsystem;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.subsystem.util.Mutable;
-import frc.lib.subsystem.util.Mutable.Builder;
-import frc.lib.subsystem.util.Mutable.Instance;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.ControlRequest;
-import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.CANSparkBase;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkPIDController;
-import com.revrobotics.CANSparkBase.ControlType;
-
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
@@ -34,10 +19,10 @@ public abstract class Subsystem extends SubsystemBase {
     private final Map<Class<? extends Enum<?>>, Mutable<?>> values;
     private final Map<Class<? extends Enum<?>>, Enum<?>> states;
 
-    public final Map<String, MotorController> motors;
-
     /**
-     *Constructs a Subsystem with initial states and values for the given enum classes.
+     * Constructs a Subsystem with initial states and values for the given enum
+     * classes.
+     * 
      * @param enumClasses The enum classes to initialize states and values from.
      */
     @SafeVarargs
@@ -45,11 +30,10 @@ public abstract class Subsystem extends SubsystemBase {
         this.hooks = new HashMap<>();
         this.values = new HashMap<>();
         this.states = new HashMap<>();
-        this.motors = new HashMap<>();
 
-        for (Class <? extends Enum<?>> clazz : enumClasses) {
+        for (Class<? extends Enum<?>> clazz : enumClasses) {
             values.put(clazz, translate(clazz));
-      states.put(clazz, clazz.getEnumConstants()[0]);
+            states.put(clazz, clazz.getEnumConstants()[0]);
         }
 
         setName(this.getClass().getName().toLowerCase());
@@ -57,15 +41,17 @@ public abstract class Subsystem extends SubsystemBase {
 
     /**
      * Translates an enum class to a Mutable object.
-     * @param <E> The enum type.
-     * @param <T> The type of values in the enum (assumed to be the same for all fields).
+     * 
+     * @param <E>       The enum type.
+     * @param <T>       The type of values in the enum (assumed to be the same for
+     *                  all fields).
      * @param enumClass The enum class to translate.
      * @return A Mutable object representing the enum.
      */
     @SuppressWarnings("unchecked")
     public static <E extends Enum<E>, T> Mutable<T> translate(Class<? extends Enum<?>> enumClass) {
         Mutable<T> mutable = new Mutable<>();
-        for (Enum<?> enumConstant: enumClass.getEnumConstants()) {
+        for (Enum<?> enumConstant : enumClass.getEnumConstants()) {
             Mutable.Builder<T> builder = new Mutable.Builder<>(enumConstant.name());
             for (Field field : enumClass.getDeclaredFields()) {
                 if (!field.isEnumConstant() && !field.isSynthetic()) {
@@ -85,7 +71,8 @@ public abstract class Subsystem extends SubsystemBase {
 
     /**
      * Gets the current state for a given enum class.
-     * @param <E> The enum type.
+     * 
+     * @param <E>        The enum type.
      * @param stateClass The class of the enum.
      * @return The current state, or the first enum constant if no state is set.
      */
@@ -94,9 +81,9 @@ public abstract class Subsystem extends SubsystemBase {
         if (state == null) {
             System.err.println("WARNING: No state found for class: " + stateClass.getSimpleName());
             E[] enumConstants = stateClass.getEnumConstants();
-            if (enumConstants.length > 0) { 
+            if (enumConstants.length > 0) {
                 return enumConstants[0];
-            } else { 
+            } else {
                 System.err.println("ERROR: No enum constants found for class: " + stateClass.getSimpleName());
                 return null;
             }
@@ -106,7 +93,8 @@ public abstract class Subsystem extends SubsystemBase {
 
     /**
      * Sets the state for a given enum class.
-     * @param <E> The enum type.
+     * 
+     * @param <E>   The enum type.
      * @param state The state to set.
      */
     public <E extends Enum<E>> void setState(E state) {
@@ -119,9 +107,11 @@ public abstract class Subsystem extends SubsystemBase {
 
     /**
      * Retrieves the value from the current state when there's only one field.
-     * @param <T> The type of the value to retrieve.
+     * 
+     * @param <T>       The type of the value to retrieve.
      * @param enumClass The enum class representing the state.
-     * @return The value of the single field in the current state, or null if an error occurs.
+     * @return The value of the single field in the current state, or null if an
+     *         error occurs.
      */
     @SuppressWarnings("unchecked")
     public <T> T getStateValue(Class<?> enumClass) {
@@ -140,7 +130,8 @@ public abstract class Subsystem extends SubsystemBase {
 
         Set<String> fieldNames = instance.getKeys();
         if (fieldNames.size() != 1) {
-            System.err.println("ERROR: Expected exactly one field, but found " + fieldNames.size() + " for state: " + currentState.name());
+            System.err.println("ERROR: Expected exactly one field, but found " + fieldNames.size() + " for state: "
+                    + currentState.name());
             return null;
         }
 
@@ -154,9 +145,12 @@ public abstract class Subsystem extends SubsystemBase {
     }
 
     /**
-     * Retrieves the value from the current state when there's only one field and state enum.
+     * Retrieves the value from the current state when there's only one field and
+     * state enum.
+     * 
      * @param <T> The type of the value to retrieve.
-     * @return The value of the single field in the current state, or null if an error occurs.
+     * @return The value of the single field in the current state, or null if an
+     *         error occurs.
      */
     public <T> T getStateValue() {
         if (values.size() != 1) {
@@ -170,9 +164,10 @@ public abstract class Subsystem extends SubsystemBase {
 
     /**
      * Retrieves a specified value from the current state for an enum.
-     * @param <T> The enum type.
+     * 
+     * @param <T>       The enum type.
      * @param enumClass The original enum class.
-     * @param key The field name to retrieve.
+     * @param key       The field name to retrieve.
      * @return The value of the specified field in the state.
      */
     @SuppressWarnings("unchecked")
@@ -193,7 +188,9 @@ public abstract class Subsystem extends SubsystemBase {
     }
 
     /**
-     * Retrieves a specified value from the current state for a single state is being used by the subsystem.
+     * Retrieves a specified value from the current state for a single state is
+     * being used by the subsystem.
+     * 
      * @param <T> The enum type.
      * @param key The field name to retrieve.
      * @return
@@ -210,10 +207,12 @@ public abstract class Subsystem extends SubsystemBase {
 
     /**
      * Retrieves a specified value from a mutable state instance.
-     * @param <T> The type of the value to retrieve.
-     * @param enumClass The original enum class.
-     * @param key The field name to retrieve.
-     * @param instanceName Optional. The name of the state to retrieve. If null, uses the current state.
+     * 
+     * @param <T>          The type of the value to retrieve.
+     * @param enumClass    The original enum class.
+     * @param key          The field name to retrieve.
+     * @param instanceName Optional. The name of the state to retrieve. If null,
+     *                     uses the current state.
      * @return The value of the specified field in the state.
      */
     @SuppressWarnings("unchecked")
@@ -253,10 +252,13 @@ public abstract class Subsystem extends SubsystemBase {
     }
 
     /**
-     * Retrieves a specified value from a mutable state instance if only one state enum is present.
-     * @param <T> The type of the value to retrieve.
-     * @param key The field name to retrieve.
-     * @param instanceName Optional. The name of the state to retrieve. If null, uses the current state.
+     * Retrieves a specified value from a mutable state instance if only one state
+     * enum is present.
+     * 
+     * @param <T>          The type of the value to retrieve.
+     * @param key          The field name to retrieve.
+     * @param instanceName Optional. The name of the state to retrieve. If null,
+     *                     uses the current state.
      * @return The value of the specified field in the state.
      */
     public <T> T getStateValue(String key, String instanceName) {
@@ -271,9 +273,10 @@ public abstract class Subsystem extends SubsystemBase {
 
     /**
      * Modifies the value of the current state when there's only one field.
-     * @param <T> The type of the value to set.
+     * 
+     * @param <T>       The type of the value to set.
      * @param enumClass The enum class representing the state.
-     * @param value The new value to set for the single field.
+     * @param value     The new value to set for the single field.
      */
     @SuppressWarnings("unchecked")
     public <T> void modifyStateValue(Class<? extends Enum<?>> enumClass, T value) {
@@ -293,7 +296,8 @@ public abstract class Subsystem extends SubsystemBase {
 
         Set<String> fieldNames = instance.getKeys();
         if (fieldNames.size() != 1) {
-            System.err.println("ERROR: Expected exactly one field, but found " + fieldNames.size() + " for state: " + currentState.name());
+            System.err.println("ERROR: Expected exactly one field, but found " + fieldNames.size() + " for state: "
+                    + currentState.name());
             return;
         }
 
@@ -302,8 +306,10 @@ public abstract class Subsystem extends SubsystemBase {
     }
 
     /**
-     * Modifies the value of the current state when there's only one field and one state.
-     * @param <T> The type of the value to set.
+     * Modifies the value of the current state when there's only one field and one
+     * state.
+     * 
+     * @param <T>   The type of the value to set.
      * @param value The new value to set for the single field.
      */
     @SuppressWarnings("unchecked")
@@ -331,7 +337,8 @@ public abstract class Subsystem extends SubsystemBase {
 
         Set<String> fieldNames = instance.getKeys();
         if (fieldNames.size() != 1) {
-            System.err.println("ERROR: Expected exactly one field, but found " + fieldNames.size() + " for state: " + currentState.name());
+            System.err.println("ERROR: Expected exactly one field, but found " + fieldNames.size() + " for state: "
+                    + currentState.name());
             return;
         }
 
@@ -341,13 +348,15 @@ public abstract class Subsystem extends SubsystemBase {
 
     /**
      * Modifies a value of the current state.
-     * @param <T> The type of the value to set.
+     * 
+     * @param <T>       The type of the value to set.
      * @param enumClass The enum class representing the state.
-     * @param key The field name.
-     * @param value The value to set.
+     * @param key       The field name.
+     * @param value     The value to set.
      */
     @SuppressWarnings("unchecked")
-    public <T> void modifyStateValue(Class<? extends Enum<?>> enumClass, String key, T value) { // TODO: Better error checking
+    public <T> void modifyStateValue(Class<? extends Enum<?>> enumClass, String key, T value) { // TODO: Better error
+                                                                                                // checking
         Enum<?> currentState = states.get(enumClass);
 
         if (currentState == null) {
@@ -360,9 +369,11 @@ public abstract class Subsystem extends SubsystemBase {
     }
 
     /**
-     * Modifies a value of the current state for when only one state is being used by the subsytem.
-     * @param <T> The type of the value to set.
-     * @param key The field name.
+     * Modifies a value of the current state for when only one state is being used
+     * by the subsytem.
+     * 
+     * @param <T>   The type of the value to set.
+     * @param key   The field name.
      * @param value The value to set.
      */
     @SuppressWarnings("unchecked")
@@ -386,11 +397,13 @@ public abstract class Subsystem extends SubsystemBase {
 
     /**
      * Modifies a value in a Mutable state instance.
-     * @param <T> The type of the value being set.
-     * @param enumClass The original enum class.
-     * @param key The field name to update.
-     * @param value The new value to set.
-     * @param instanceName Optional. The name of the state to modify. If null, modifies the current state.
+     * 
+     * @param <T>          The type of the value being set.
+     * @param enumClass    The original enum class.
+     * @param key          The field name to update.
+     * @param value        The new value to set.
+     * @param instanceName Optional. The name of the state to modify. If null,
+     *                     modifies the current state.
      */
     @SuppressWarnings("unchecked")
     public <T> void modifyStateValue(Class<? extends Enum<?>> enumClass, String key, T value, String instanceName) {
@@ -424,12 +437,16 @@ public abstract class Subsystem extends SubsystemBase {
     }
 
     /**
-     * Modifies a value in a Mutable state instance when only one instance is present. <p>
+     * Modifies a value in a Mutable state instance when only one instance is
+     * present.
+     * <p>
      * Do NOT use this if a subsystem uses multiple states.
-     * @param <T> The type of the value being set.
-     * @param key The field name to update.
-     * @param value The new value to set.
-     * @param instanceName Optional. The name of the state to modify. If null, modifies the current state.
+     * 
+     * @param <T>          The type of the value being set.
+     * @param key          The field name to update.
+     * @param value        The new value to set.
+     * @param instanceName Optional. The name of the state to modify. If null,
+     *                     modifies the current state.
      */
     @SuppressWarnings("unchecked")
     public <T> void modifyStateValue(String key, T value, String instanceName) {
@@ -471,19 +488,22 @@ public abstract class Subsystem extends SubsystemBase {
 
     /**
      * Creates a hook for an object, linking it by reference.
-     * For the enum constant provided, a hook is created for the first associated value
+     * For the enum constant provided, a hook is created for the first associated
+     * value
+     * 
      * @param enumConstant The enum constant to hook
-     * @param value The value to hook
+     * @param value        The value to hook
      */
     protected void setHook(Enum<?> enumConstant, Object value) {
         hooks.computeIfAbsent(enumConstant.getDeclaringClass(), k -> new HashMap<>())
-            .computeIfAbsent(enumConstant, k -> new HashMap<>())
-            .put(0, value);
+                .computeIfAbsent(enumConstant, k -> new HashMap<>())
+                .put(0, value);
         updateHooks();
     }
 
     /**
      * Removes all hooks for a given enum constant
+     * 
      * @param enumConstant The enum constant to remove hooks.
      */
     protected void removeHooks(Enum<?> enumConstant) {
@@ -492,21 +512,23 @@ public abstract class Subsystem extends SubsystemBase {
 
     /**
      * Creates a hook for an object, linking it by reference.
+     * 
      * @param enumConstant The enum constant to hook
-     * @param value The value to hook
-     * @param index The index of the value to hook
+     * @param value        The value to hook
+     * @param index        The index of the value to hook
      */
     protected void setHook(Enum<?> enumConstant, Object value, Integer index) {
         hooks.computeIfAbsent(enumConstant.getDeclaringClass(), k -> new HashMap<>())
-            .computeIfAbsent(enumConstant, k -> new HashMap<>())
-            .put(index, value);
+                .computeIfAbsent(enumConstant, k -> new HashMap<>())
+                .put(index, value);
         updateHooks();
     }
 
     /**
      * Removes a hook from an enum constant.
+     * 
      * @param enumConstant The enum constant to remove hooks from.
-     * @param index The hooked index to remove.
+     * @param index        The hooked index to remove.
      */
     protected void removeHook(Enum<?> enumConstant, Integer index) {
         hooks.get(enumConstant.getDeclaringClass()).get(enumConstant).remove(index);
@@ -534,198 +556,6 @@ public abstract class Subsystem extends SubsystemBase {
     }
 
     /**
-     * Adds a motor to the subsystem
-     * @param name The name of the motor
-     * @param motor The motor controller
-     */
-    protected void addMotor(String name, MotorController motor) {
-        if (name == null || motor == null) {
-            System.err.println("ERROR: Attempted to add null motor or name to " + getName());
-            return;
-        }
-
-        if (motors.containsKey(name)) {
-            System.err.println("WARNING: Overwriting existing motor '" + name + "' in " + getName());
-        }
-
-        motors.put(name, motor);
-    }
-
-    /**
-     * Adds PID values to a motor's PID controller
-     * @param name The motor's name
-     * @param constants The PID constants
-     */
-    protected void addPIDValues(String name, Class<?> constants) {
-        MotorController motor = motors.get(name);
-
-        if (name == null) {
-            System.err.println("ERROR: Attempted to add PID values with null name to subsystem " + getName());
-            return;
-        }
-
-        Optional<Double> kP = getClassFields(constants, "kP", "P");
-        Optional<Double> kI = getClassFields(constants, "kI", "I");
-        Optional<Double> kD = getClassFields(constants, "kD", "D");
-        Optional<Double> kF = getClassFields(constants, "FF", "ff", "F", "kF");
-        Optional<Double> kIZone = getClassFields(constants, "kIzone", "Izone", "kIz", "Iz", "IZ");
-        Optional<Double> kIAccum = getClassFields(constants, "kIAccum", "IAccum", "Iacc", "Ia", "IA", "kIa");
-        Optional<Double> kDFilter = getClassFields(constants, "kDFilter", "DFilter", "kDF", "kDf", "DF", "Df");
-        Optional<Double> kMinOutput = getClassFields(constants, "kMinOutput", "MinOutput", "kMin");
-        Optional<Double> kMaxOutput = getClassFields(constants, "kMaxOutput", "MaxOutput", "kMax");
-
-        if (motor instanceof CANSparkBase) {
-            SparkPIDController pidController = ((CANSparkBase) motor).getPIDController();
-            
-            kP.ifPresent(pidController::setP);
-            kI.ifPresent(pidController::setI);
-            kD.ifPresent(pidController::setD);
-            kF.ifPresent(pidController::setFF);
-            kIZone.ifPresent(pidController::setIAccum);
-            kIAccum.ifPresent(pidController::setIAccum);
-            kDFilter.ifPresent(pidController::setDFilter);
-            kMinOutput.ifPresent(
-                min -> kMaxOutput.ifPresent(
-                    max -> pidController.setOutputRange(min, max)
-                )
-            );
-        } else if (motor instanceof TalonFX) {
-            TalonFXConfiguration config = new TalonFXConfiguration();
-
-            kP.ifPresent(P -> config.Slot0.kP = P);
-            kI.ifPresent(I -> config.Slot0.kI = I);
-            kD.ifPresent(D -> config.Slot0.kD = D);
-
-            ((TalonFX) motor).getConfigurator().apply(config);
-        } else {
-            System.err.println("ERROR: Unsupported motor type for '" + name + "' in addPIDValues");
-            return;
-        }
-    }
-
-    /**
-     * Adds PID values to a motor's PID controller with timeout, only supports TalonFX
-     * @param name The motor's name
-     * @param constants The PID constants
-     * @param timeout The timeout in seconds
-     */
-    protected void addPIDValues(String name, Class<?> constants, double timeout) {
-        MotorController motor = motors.get(name);
-
-        if (name == null) {
-            System.err.println("ERROR: Attempted to add PID values with null name to subsystem " + getName());
-            return;
-        }
-
-        Optional<Double> kP = getClassFields(constants, "kP", "P");
-        Optional<Double> kI = getClassFields(constants, "kI", "I");
-        Optional<Double> kD = getClassFields(constants, "kD", "D");
-
-        if (motor instanceof TalonFX) {
-            TalonFXConfiguration config = new TalonFXConfiguration();
-
-            kP.ifPresent(P -> config.Slot0.kP = P);
-            kI.ifPresent(I -> config.Slot0.kI = I);
-            kD.ifPresent(D -> config.Slot0.kD = D);
-
-            ((TalonFX) motor).getConfigurator().apply(config, timeout);
-        } else {
-            System.err.println("ERROR: Unsupported motor type for '" + name + "' in addPIDValues with timeout");
-            return;
-        }
-    }
-
-    /**
-     * Sets a PID setpoint with a specified control type
-     * @param name The motor's name
-     * @param setpoint The PID setpoint
-     * @param controlType The PID controller mode
-     */
-    protected void setPIDReference(String name, double setpoint, Control controlType) {
-        MotorController motor = motors.get(name);
-
-        if (motor instanceof CANSparkBase) {
-            ControlType revControlType = controlType == Control.POSITION ? ControlType.kPosition :
-                                         controlType == Control.VELOCITY ? ControlType.kVelocity :
-                                         ControlType.kVoltage;
-            ((CANSparkBase) motor).getPIDController().setReference(setpoint, revControlType);
-        } else if (motor instanceof TalonFX) {
-            ControlRequest ctreRequest = controlType == Control.POSITION ? new PositionVoltage(setpoint) :
-                                         controlType == Control.VELOCITY ? new VelocityVoltage(setpoint) :
-                                         new VoltageOut(setpoint);
-            ((TalonFX) motor).setControl(ctreRequest);
-        }
-    }
-
-    /**
-     * An enum representing various control types for use as an argument to {@code setPIDReference}.
-     * <pre>{@code
-     * enum Control {
-     *     POSITION,
-     *     VELOCITY,
-     *     VOLTAGE
-     * }</pre>
-     */
-    protected enum Control {
-        POSITION,
-        VELOCITY,
-        VOLTAGE
-    }
-
-    /**
-     * Helper function to get a double field from a class to be used by getClassFields
-     * @param clazz The static class
-     * @param fieldName The static field name
-     * @return A Double object representing the double field if present, null otherwise
-     */
-    @SuppressWarnings("unchecked")
-    private <T> Optional<T> getClassField(Class<?> clazz, String fieldName) {
-        try {
-            return Optional.ofNullable((T) clazz.getField(fieldName).get(null));
-        } catch (Exception e) {
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * Helper function to get a double field from a possibility of multiple fields
-     * @param clazz The static class
-     * @param fieldNames The possible field names as arguments
-     * @return A double value for the first valid field supplied as an argument
-     */
-    private <T> Optional<T> getClassFields(Class<?> clazz, String... fieldNames) {
-        for (String fieldName : fieldNames) {
-            Optional<T> field = getClassField(clazz, fieldName);
-            if (field.isPresent()) {
-                return field;
-            }
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * Checks if a motor is at the target position
-     * @param motorName The name of the motor
-     * @param targetPosition The target position
-     * @param threshold The acceptable threshold for considering the position reached
-     * @return true if the motor at the target position, false otherwise
-     */
-    public boolean isAtTargetPosition(String motorName, double targetPosition, double threshold) {
-        MotorController motor = motors.get(motorName);
-
-        if (motor == null) {
-            System.err.println("ERROR: No motor found with name '" + motorName + "' in " + getName());
-            return false;
-        }
-
-        if (motor instanceof CANSparkMax) {
-            return Math.abs(((CANSparkMax) motor).getEncoder().getPosition() - targetPosition) < threshold;
-        }
-
-        return false;
-    }
-
-    /**
      * Abstract method to update motor outputs. Must be implemented by subclasses.
      */
     protected abstract void updateMotors();
@@ -734,10 +564,8 @@ public abstract class Subsystem extends SubsystemBase {
      * Updates the SmartDashboard with current states and motor outputs.
      */
     protected void updateSmartDashboard() {
-        states.forEach((stateClass, state) -> 
-            SmartDashboard.putString(getName() + " " + stateClass.getSimpleName(), state.toString()));
-        motors.forEach((name, motor) -> 
-            SmartDashboard.putNumber(getName() + " " + name + " Output", motor.get()));
+        states.forEach((stateClass, state) -> SmartDashboard.putString(getName() + " " + stateClass.getSimpleName(),
+                state.toString()));
     }
 
     /**
@@ -747,12 +575,5 @@ public abstract class Subsystem extends SubsystemBase {
     public void periodic() {
         updateMotors();
         updateSmartDashboard();
-    }
-
-    /**
-     * Stops all motors in a subsystem.
-     */
-    public void stopMotors() {
-        motors.values().forEach(MotorController::stopMotor);
     }
 }

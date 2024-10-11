@@ -20,7 +20,8 @@ public class Mutable<T> {
 
         /**
          * Constructs a new Builder with a given name.
-         * @param name The name of the Instance to be built. 
+         * 
+         * @param name The name of the Instance to be built.
          */
         public Builder(String name) {
             this.name = name;
@@ -28,7 +29,8 @@ public class Mutable<T> {
 
         /**
          * Adds a key-value pair to the instance being built.
-         * @param key The key for the value.
+         * 
+         * @param key   The key for the value.
          * @param value The value associated with the key.
          * @return The Builder instance for method chaining.
          */
@@ -39,6 +41,7 @@ public class Mutable<T> {
 
         /**
          * Builds and returns a new Instance with the current name and values.
+         * 
          * @return A new Instance object.
          */
         public Instance<T> build() {
@@ -47,12 +50,13 @@ public class Mutable<T> {
     }
 
     /**
-     * A class representing a single instance within the Mutable, similar to an enum constant.
+     * A class representing a single instance within the Mutable, similar to an enum
+     * constant.
      */
     public static class Instance<T> {
         private final String name;
         private final Map<String, T> values;
-        
+
         private Instance(String name, Map<String, T> values) {
             this.name = name;
             this.values = new ConcurrentHashMap<>(values);
@@ -60,6 +64,7 @@ public class Mutable<T> {
 
         /**
          * Retries the value associated with a given key.
+         * 
          * @param key The key whose associated value is to be returned.
          * @return The value associated with the specified key.
          */
@@ -69,7 +74,8 @@ public class Mutable<T> {
 
         /**
          * Associates the specified value with the specified key.
-         * @param key The key with which the specified value is to be associated.
+         * 
+         * @param key   The key with which the specified value is to be associated.
          * @param value The value to be associated with the specified key.
          */
         public void set(String key, T value) {
@@ -78,6 +84,7 @@ public class Mutable<T> {
 
         /**
          * Gets the keys from this Instance and returns it as a Set.
+         * 
          * @return A set object of the keys contained in this Instance.
          */
         public Set<String> getKeys() {
@@ -86,6 +93,7 @@ public class Mutable<T> {
 
         /**
          * Gets the values from this Instance and returns it as a Collection.
+         * 
          * @return A Collection object of the values contained in this Instance.
          */
         public Collection<T> values() {
@@ -94,6 +102,7 @@ public class Mutable<T> {
 
         /**
          * Gets the name of this Instance as a string.
+         * 
          * @return The name of this Instance.
          */
         public String getName() {
@@ -102,8 +111,10 @@ public class Mutable<T> {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Instance)) return false;
+            if (this == o)
+                return true;
+            if (!(o instanceof Instance))
+                return false;
             Instance<?> that = (Instance<?>) o;
             return Objects.equals(name, that.name) && Objects.equals(values, that.values);
         }
@@ -123,6 +134,7 @@ public class Mutable<T> {
 
     /**
      * Adds an Instance to this Mutable.
+     * 
      * @param instance The instance to be added.
      */
     public void addInstance(Instance<T> instance) {
@@ -131,6 +143,7 @@ public class Mutable<T> {
 
     /**
      * Retrieves an Instance by its name.
+     * 
      * @param name The name of the Instance to retrieve.
      * @return The Instance with the specified name, or null if not found.
      */
@@ -140,6 +153,7 @@ public class Mutable<T> {
 
     /**
      * Gets the Instances from this Mutable and returns it as a Collection.
+     * 
      * @return A Collection object of the Instances in this Mutable.
      */
     public Collection<Instance<T>> values() {
@@ -148,6 +162,7 @@ public class Mutable<T> {
 
     /**
      * Gets the number of Instances within this Mutable.
+     * 
      * @return The number of Instances in this Mutable.
      */
     public int size() {
@@ -156,8 +171,10 @@ public class Mutable<T> {
 
     /**
      * Checks if this Mutable contains an Instance with the specified name.
+     * 
      * @param name The name to check for.
-     * @return true if this Mutable contains an Instance with the specified name, false otherwise
+     * @return true if this Mutable contains an Instance with the specified name,
+     *         false otherwise
      */
     public boolean containsInstance(String name) {
         return instances.containsKey(name);

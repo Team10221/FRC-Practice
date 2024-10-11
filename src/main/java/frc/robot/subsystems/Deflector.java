@@ -1,22 +1,20 @@
 package frc.robot.subsystems;
 
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkLowLevel.MotorType;
-
 import frc.lib.subsystem.Subsystem;
+import frc.lib.subsystem.util.Motor;
+import frc.lib.subsystem.util.PID;
 import frc.robot.Constants.DeflectorConstants;
-import frc.robot.Constants.DeflectorConstants.AngleMotorPID;
 import frc.robot.Constants.DeflectorConstants.DeflectorState;
 
 public class Deflector extends Subsystem {
+    Motor deflectorAngle = Motor.neo(DeflectorConstants.DEFLECTOR_ID).setPID(new PID(0, 0, 0));
+
     public Deflector() {
         super(DeflectorState.class);
-        addMotor("deflectorAngle", new CANSparkMax(DeflectorConstants.DEFLECTOR_ID, MotorType.kBrushless));
-        addPIDValues("deflectorAngle", AngleMotorPID.class);
     }
 
     @Override
     protected void updateMotors() {
-        setPIDReference("deflectorAngle", getState(DeflectorState.class).position, Control.POSITION);
+        deflectorAngle.setReference(getState(DeflectorState.class).position);
     }
 }

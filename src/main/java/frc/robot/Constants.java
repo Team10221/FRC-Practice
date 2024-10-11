@@ -5,20 +5,11 @@ public final class Constants {
 		public static final int ANGLE_MOTOR_ID = 0;
 		public static final int FEEDER_MOTOR_ID = 1;
 		public static final int INTAKE_MOTOR_ID = 2;
-
-		public static class AngleMotorPID {
-			public static final double kP = 0.0;
-			public static final double kI = 0.0;
-			public static final double kD = 0.0;
-		}
-
 		public static final double ANGLE_DOWN_POSITION = 0.0;
 		public static final double ANGLE_UP_POSITION = 0.0;
-
 		public static final double INTAKE_SPEED = 0.0;
 		public static final double OUTTAKE_SPEED = 0.0;
 		public static final double FEED_SPEED = 0.0;
-
 		public static final double ACCURACY_THRESHOLD = 0.1;
 
 		public enum IntakeState {
@@ -40,13 +31,6 @@ public final class Constants {
 		public static final int SHOOTER_MOTOR_UP_ID = 3;
 		public static final int SHOOTER_MOTOR_DOWN_ID = 4;
 		public static final int ANGLE_MOTOR_ID = 5;
-
-		public static class AngleMotorPID {
-			public static final double kP = 0.0;
-			public static final double kI = 0.0;
-			public static final double kD = 0.0;
-		}
-
 		public static final double ACCURACY_THRESHOLD = 0.1;
 
 		public static enum AngleState {
@@ -76,12 +60,6 @@ public final class Constants {
 
 	public static class DeflectorConstants {
 		public static final int DEFLECTOR_ID = 6;
-
-		public static class AngleMotorPID {
-			public static final double kP = 0.0;
-			public static final double kI = 0.0;
-			public static final double kD = 0.0;
-		}
 
 		public static enum DeflectorState {
 			UP(0.0),

@@ -140,6 +140,24 @@ public class Motor {
   }
 
   /**
+   * Gets the name of the current motor controller.
+   *
+   * @return The current motor controller's name.
+   */
+  public String getType() {
+    return motor.getClass().getName();
+  }
+
+  /**
+   * Sets the speed of the motor, from -1 to 1.
+   *
+   * @param speed The speed to set
+   */
+  public void set(double speed) {
+    motor.set(speed);
+  }
+
+  /**
    * Sets the motor's PID.
    * 
    * @param pid The PID to set, in a PID object.
@@ -160,6 +178,17 @@ public class Motor {
    */
   public Motor setReference(double reference, Control controlType) {
     adapter.setReference(reference, controlType);
+    return this;
+  }
+
+  /**
+   * Sets the motor's reference, assuming a position control.
+   *
+   * @param reference The reference value.
+   * @return The motor object, allowing for method chaining.
+   */
+  public Motor setReference(double reference) {
+    adapter.setReference(reference, Control.POSITION);
     return this;
   }
 
