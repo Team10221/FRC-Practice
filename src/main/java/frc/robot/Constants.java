@@ -1,5 +1,7 @@
 package frc.robot;
 
+import frc.lib.subsystem.util.PID;
+
 public final class Constants {
 	public static class IntakeConstants {
 		public static final int ANGLE_MOTOR_ID = 0;
@@ -11,6 +13,8 @@ public final class Constants {
 		public static final double OUTTAKE_SPEED = 0.0;
 		public static final double FEED_SPEED = 0.0;
 		public static final double ACCURACY_THRESHOLD = 0.1;
+
+		public static final PID PID = new PID(0, 0, 0);
 
 		public enum IntakeState {
 			IDLE(0.0, 0.0, IntakeConstants.ANGLE_UP_POSITION),
@@ -32,6 +36,8 @@ public final class Constants {
 		public static final int SHOOTER_MOTOR_DOWN_ID = 4;
 		public static final int ANGLE_MOTOR_ID = 5;
 		public static final double ACCURACY_THRESHOLD = 0.1;
+
+		public static final PID PID = new PID(0, 0, 0);
 
 		public static enum AngleState {
 			RESTING(0.0),
@@ -60,6 +66,7 @@ public final class Constants {
 
 	public static class DeflectorConstants {
 		public static final int DEFLECTOR_ID = 6;
+		public static final PID PID = new PID(0, 0, 0);
 
 		public static enum DeflectorState {
 			UP(0.0),
