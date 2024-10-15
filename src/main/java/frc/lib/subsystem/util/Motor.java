@@ -152,9 +152,11 @@ public class Motor {
    * Sets the speed of the motor, from -1 to 1.
    *
    * @param speed The speed to set
+   * @return The motor object, allowing for method chaining.
    */
-  public void set(double speed) {
+  public Motor set(double speed) {
     motor.set(speed);
+    return this;
   }
 
   /**
@@ -278,7 +280,7 @@ public class Motor {
    * Sets a threshold for isAtTarget.
    * 
    * @param threshold The threshold to set.
-   * @return Whether the motor is at the target or not.
+   * @return The motor object, allowing for method chaining.
    */
   public Motor setThreshold(double threshold) {
     this.threshold = threshold;

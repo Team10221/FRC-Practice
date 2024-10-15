@@ -201,8 +201,9 @@ public abstract class Subsystem extends SubsystemBase {
             return null;
         }
 
-        Class<? extends Enum<?>> enumClass = values.entrySet().iterator().next().getKey();
-        return getStateValue(enumClass, key);
+        // Class<? extends Enum<?>> enumClass =
+        // values.entrySet().iterator().next().getKey();
+        return getStateValue(values.entrySet().iterator().next().getKey(), key);
     }
 
     /**
@@ -243,12 +244,7 @@ public abstract class Subsystem extends SubsystemBase {
             return null;
         }
 
-        T value = instance.get(key);
-        if (value instanceof Supplier) {
-            return ((Supplier<T>) value).get();
-        }
-
-        return value;
+        return instance.get(key);
     }
 
     /**
@@ -301,8 +297,8 @@ public abstract class Subsystem extends SubsystemBase {
             return;
         }
 
-        String singleFieldName = fieldNames.iterator().next();
-        instance.set(singleFieldName, value);
+        // String singleFieldName = fieldNames.iterator().next();
+        instance.set(fieldNames.iterator().next(), value);
     }
 
     /**
@@ -342,8 +338,8 @@ public abstract class Subsystem extends SubsystemBase {
             return;
         }
 
-        String singleFieldName = fieldNames.iterator().next();
-        instance.set(singleFieldName, value);
+        // String singleFieldName = fieldNames.iterator().next();
+        instance.set(fieldNames.iterator().next(), value);
     }
 
     /**
