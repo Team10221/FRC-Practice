@@ -6,7 +6,7 @@ import frc.robot.Constants.DeflectorConstants;
 import frc.robot.Constants.DeflectorConstants.DeflectorState;
 
 public class Deflector extends Subsystem {
-    Motor deflectorAngle = Motor.neo(DeflectorConstants.DEFLECTOR_ID).setPID(DeflectorConstants.PID);
+    private Motor deflectorAngle = Motor.neo(DeflectorConstants.DEFLECTOR_ID).setPID(DeflectorConstants.PID);
 
     public Deflector() {
         super(DeflectorState.class);

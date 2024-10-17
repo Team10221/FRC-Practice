@@ -36,6 +36,7 @@ public final class Constants {
 		public static final int SHOOTER_MOTOR_DOWN_ID = 4;
 		public static final int ANGLE_MOTOR_ID = 5;
 		public static final double ACCURACY_THRESHOLD = 0.1;
+		public static final double SHOOTER_SPEED = 1.0;
 
 		public static final PID PID = new PID(0, 0, 0);
 
@@ -52,7 +53,8 @@ public final class Constants {
 
 		public static enum ShooterState {
 			IDLE(0.0, 0.0),
-			SHOOTING(1.0, 1.0),
+			SHOOTING(SHOOTER_SPEED, -SHOOTER_SPEED),
+			INVERSE(-SHOOTER_SPEED, SHOOTER_SPEED),
 			REVERSE(-0.25, -0.25);
 
 			public final double topSpeed, bottomSpeed;
