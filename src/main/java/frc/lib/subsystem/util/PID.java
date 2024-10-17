@@ -60,7 +60,7 @@ public class PID {
     if (hasPID()) {
       return new PIDController(kP.get(), kI.get(), kD.get());
     } else {
-      throw new Error();
+      throw new Error("P, I, D constants not present.");
     }
   }
 
