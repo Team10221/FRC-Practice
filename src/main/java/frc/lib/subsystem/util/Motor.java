@@ -23,6 +23,8 @@ import edu.wpi.first.wpilibj.motorcontrol.MotorController;
  */
 public class Motor {
   private double threshold;
+  private double manualReference;
+  private Control manualPIDControl;
 
   private PID pid;
   private MotorAdapter adapter;
@@ -52,6 +54,8 @@ public class Motor {
     double getPosition();
 
     double getVelocity();
+
+    double getVoltage();
 
     boolean isInverted();
 
@@ -195,6 +199,57 @@ public class Motor {
   }
 
   /**
+   * Use code based PID instead of integrated motor controller PID.
+   * This method is intended to be called in updateMotors, (like setReference) and relies on being called frequently for the PID controller to recalculate.
+   *
+   * @param reference The reference value.
+   * @param control The type of PID control(POSITION, VELOCITY, or VOLTAGE)
+   * @return The motor object, allowing for method chaining.
+   */
+  public Motor setManualReference(double reference, Control control){
+    manualReference = reference;
+    manualPIDControl = control;
+    runManualPID();
+    return this;
+  }
+
+  /**
+   * Use code based PID instead of integrated motor controller PID.
+   * If no previously specified control type, POSITION is used.
+   * This method is intended to be called in updateMotors, (like setReference) and relies on being called frequently for the PID to controller recalculate.
+   *
+   * @param reference The reference value.
+   * @return The motor object, allowing for method chaining.
+   */
+  public Motor setManualReference(double reference){
+    if(manualPIDControl == null){
+      manualPIDControl = Control.POSITION;
+    }
+    runManualPID();
+    return setManualReference(reference, manualPIDControl);
+  }
+
+  private void runManualPID(){
+    switch(manualPIDControl){
+      case POSITION:
+        motor.set(pid.toPIDController().calculate(getPosition(), manualReference));
+      case VELOCITY:
+        motor.set(pid.toPIDController().calculate(getVelocity(), manualReference));
+      case VOLTAGE:
+        motor.set(pid.toPIDController().calculate(getVoltage(), manualReference));
+    }
+  }
+
+  /**
+   * Returns the motor's current input voltage.
+   * 
+   * @return The motor's current input voltage.
+   */
+  public double getVoltage(){
+    return adapter.getVoltage();
+  }
+
+  /**
    * Returns the motor's current position.
    * 
    * @return The motor's current position.
@@ -321,9 +376,9 @@ public class Motor {
 
     public void setPID(PID pid) {
       SparkPIDController pidController = motor.getPIDController();
-      pidController.setP(pid.getP());
-      pidController.setI(pid.getI());
-      pidController.setD(pid.getD());
+      pidController.setP(pid.getP().orElse(0.0));
+      pidController.setI(pid.getI().orElse(0.0));
+      pidController.setD(pid.getD().orElse(0.0));
     }
 
     public void setReference(double reference, Control controlType) {
@@ -341,6 +396,10 @@ public class Motor {
 
     public double getVelocity() {
       return motor.getEncoder().getVelocity();
+    }
+
+    public double getVoltage(){
+      return motor.getBusVoltage();
     }
 
     public void setInverted(boolean toInvert) {
@@ -382,9 +441,9 @@ public class Motor {
 
     public void setPID(PID pid) {
       TalonFXConfiguration config = new TalonFXConfiguration();
-      config.Slot0.kP = pid.getP();
-      config.Slot0.kI = pid.getI();
-      config.Slot0.kD = pid.getD();
+      config.Slot0.kP = pid.getP().orElse(0.0);
+      config.Slot0.kI = pid.getI().orElse(0.0);
+      config.Slot0.kD = pid.getD().orElse(0.0);
       motor.getConfigurator().apply(config);
     }
 
@@ -403,6 +462,10 @@ public class Motor {
 
     public double getVelocity() {
       return motor.getVelocity().getValueAsDouble();
+    }
+
+    public double getVoltage(){
+      return motor.getSupplyVoltage().getValueAsDouble();
     }
 
     public void setInverted(boolean toInvert) {

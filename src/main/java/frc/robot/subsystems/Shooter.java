@@ -18,6 +18,7 @@ public class Shooter extends Subsystem {
     protected void updateMotors() {
         shooterTopMotor.set(getState(ShooterState.class).topSpeed);
         shooterBottomMotor.set(getState(ShooterState.class).bottomSpeed);
-        shooterAngleMotor.setReference(getState(AngleState.class).position);
+        //Example of how setManualReference is used
+        shooterAngleMotor.setManualReference(getState(AngleState.class).position);
     }
 }
