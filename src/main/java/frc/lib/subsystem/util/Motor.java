@@ -206,7 +206,7 @@ public class Motor {
    * @param control The type of PID control(POSITION, VELOCITY, or VOLTAGE)
    * @return The motor object, allowing for method chaining.
    */
-  public Motor setManualReference(double reference, Control control){
+  public Motor setManualReference(double reference, Control control) {
     manualReference = reference;
     manualPIDControl = control;
     runManualPID();
@@ -221,7 +221,7 @@ public class Motor {
    * @param reference The reference value.
    * @return The motor object, allowing for method chaining.
    */
-  public Motor setManualReference(double reference){
+  public Motor setManualReference(double reference) {
     if(manualPIDControl == null){
       manualPIDControl = Control.POSITION;
     }
@@ -229,7 +229,7 @@ public class Motor {
     return setManualReference(reference, manualPIDControl);
   }
 
-  private void runManualPID(){
+  private void runManualPID() {
     switch(manualPIDControl){
       case POSITION:
         motor.set(pid.toPIDController().calculate(getPosition(), manualReference));
@@ -245,7 +245,7 @@ public class Motor {
    * 
    * @return The motor's current input voltage.
    */
-  public double getVoltage(){
+  public double getVoltage() {
     return adapter.getVoltage();
   }
 
@@ -398,8 +398,8 @@ public class Motor {
       return motor.getEncoder().getVelocity();
     }
 
-    public double getVoltage(){
-      return motor.getBusVoltage();
+    public double getVoltage() {
+      return motor.getBusVoltage()*motor.getAppliedOutput();
     }
 
     public void setInverted(boolean toInvert) {
@@ -464,8 +464,8 @@ public class Motor {
       return motor.getVelocity().getValueAsDouble();
     }
 
-    public double getVoltage(){
-      return motor.getSupplyVoltage().getValueAsDouble();
+    public double getVoltage() {
+      return motor.getMotorVoltage().getValueAsDouble();
     }
 
     public void setInverted(boolean toInvert) {
