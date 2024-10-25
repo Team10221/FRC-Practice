@@ -1,66 +1,32 @@
-package frc.lib.subsystem.util;
+package frc.lib.motor;
 
 import java.util.function.Consumer;
 
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkPIDController;
-import com.revrobotics.CANSparkBase.ControlType;
-import com.revrobotics.CANSparkBase.SoftLimitDirection;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import frc.lib.motor.adapters.SparkBaseAdapter;
+import frc.lib.motor.adapters.TalonFXAdapter;
+import frc.lib.util.PID;
 
 /**
  * A wrapper class for motors, simplifying use and implementation.
  */
 public class Motor {
   private double threshold;
-  private double manualReference;
-  private Control manualPIDControl;
 
   private PID pid;
   private MotorAdapter adapter;
   private MotorController motor;
 
+  /**
+   * An enum for common types of motor control: position, velocity, voltage. 
+   * Corresponds to each type of motor control for TalonFX and CANSparkBase motor controllers.
+   */
   public enum Control {
     POSITION, VELOCITY, VOLTAGE
-  }
-
-  private interface MotorAdapter {
-    void resetEncoder();
-
-    void setPID(PID pid);
-
-    void setInverted(boolean toInvert);
-
-    void setCurrentLimit(double limit);
-
-    void setReference(double reference, Control controlType);
-
-    void setSoftLimits(double forward, double back);
-
-    void setForwardLimit(double forward);
-
-    void setBackLimit(double back);
-
-    double getPosition();
-
-    double getVelocity();
-
-    double getVoltage();
-
-    boolean isInverted();
-
-    default void setStatorCurrentLimit(double limit) {
-    };
   }
 
   /**
@@ -194,50 +160,93 @@ public class Motor {
    * @return The motor object, allowing for method chaining.
    */
   public Motor setReference(double reference) {
-    adapter.setReference(reference, Control.POSITION);
-    return this;
+    return setReference(reference, Control.POSITION);
   }
 
   /**
-   * Use code based PID instead of integrated motor controller PID.
-   * This method is intended to be called in updateMotors, (like setReference) and relies on being called frequently for the PID controller to recalculate.
-   *
-   * @param reference The reference value.
-   * @param control The type of PID control(POSITION, VELOCITY, or VOLTAGE)
+   * Sets the motor's (position/velocity) reference.
+   * 
+   * @param reference   The reference value.
+   * @param controlType The type of reference, e.g. position or velocity.
    * @return The motor object, allowing for method chaining.
    */
-  public Motor setManualReference(double reference, Control control) {
-    manualReference = reference;
-    manualPIDControl = control;
-    runManualPID();
-    return this;
+  public Motor setRef(double reference, Control controlType) {
+    return setRef(reference, controlType);
+  }
+
+  /**
+   * Sets the motor's reference, assuming a position control.
+   *
+   * @param reference The reference value.
+   * @return The motor object, allowing for method chaining.
+   */
+  public Motor setRef(double reference) {
+    return setReference(reference);
   }
 
   /**
    * Use code based PID instead of integrated motor controller PID.
    * If no previously specified control type, POSITION is used.
-   * This method is intended to be called in updateMotors, (like setReference) and relies on being called frequently for the PID to controller recalculate.
+   * This method is intended to be called in updateMotors, (like setReference) and
+   * relies on being called frequently for the PID to controller recalculate.
    *
    * @param reference The reference value.
    * @return The motor object, allowing for method chaining.
    */
   public Motor setManualReference(double reference) {
-    if(manualPIDControl == null){
-      manualPIDControl = Control.POSITION;
-    }
-    runManualPID();
-    return setManualReference(reference, manualPIDControl);
+    return setManualReference(reference, Control.POSITION);
   }
 
-  private void runManualPID() {
-    switch(manualPIDControl){
-      case POSITION:
-        motor.set(pid.toPIDController().calculate(getPosition(), manualReference));
-      case VELOCITY:
-        motor.set(pid.toPIDController().calculate(getVelocity(), manualReference));
-      case VOLTAGE:
-        motor.set(pid.toPIDController().calculate(getVoltage(), manualReference));
+  /**
+   * Use code based PID instead of integrated motor controller PID.
+   * This method is intended to be called in updateMotors, (like setReference) and
+   * relies on being called frequently for the PID controller to recalculate.
+   *
+   * @param reference The reference value.
+   * @param control   The type of PID control (POSITION, VELOCITY, or VOLTAGE)
+   * @return The motor object, allowing for method chaining.
+   */
+  public Motor setManualReference(double reference, Control controlType) {
+    // TODO: FINISH
+    /*
+     * motor.set(pid.toPIDController().calculate(
+     * switch (controlType) {
+     * case POSITION -> getPosition();
+     * case VELOCITY -> getVelocity();
+     * case VOLTAGE -> getVoltage();
+     * }, reference));
+     */
+    switch (controlType) {
+      case VELOCITY -> {
+        motor.set(pid.toPIDController().calculate(getVelocity(), reference));
+      }
+      case POSITION -> {
+        // motor.set(pid.toPIDController().calculate(getPosition(), reference));
+        // I'm not sure the above is correct?
+      }
+      case VOLTAGE -> {
+        motor.setVoltage(pid.toPIDController().calculate(getVoltage(), reference));
+      }
     }
+    return this;
+  }
+
+  // TODO: Add javadoc comments for methods below
+
+  public Motor setManRef(double reference) {
+    return setManualReference(reference, Control.POSITION);
+  }
+
+  public Motor setManRef(double reference, Control controlType) {
+    return setManualReference(reference, controlType);
+  }
+
+  public Motor setMRef(double reference) {
+    return setManualReference(reference, Control.POSITION);
+  }
+
+  public Motor setMRef(double reference, Control controlType) {
+    return setManualReference(reference, controlType);
   }
 
   /**
@@ -365,152 +374,5 @@ public class Motor {
    */
   public void stop() {
     motor.stopMotor();
-  }
-
-  public static class SparkBaseAdapter implements MotorAdapter {
-    private CANSparkBase motor;
-
-    SparkBaseAdapter(CANSparkBase motor) {
-      this.motor = motor;
-    }
-
-    public void setPID(PID pid) {
-      SparkPIDController pidController = motor.getPIDController();
-      pidController.setP(pid.getP().orElse(0.0));
-      pidController.setI(pid.getI().orElse(0.0));
-      pidController.setD(pid.getD().orElse(0.0));
-    }
-
-    public void setReference(double reference, Control controlType) {
-      motor.getPIDController().setReference(reference,
-          switch (controlType) {
-            case POSITION -> ControlType.kPosition;
-            case VELOCITY -> ControlType.kVelocity;
-            case VOLTAGE -> ControlType.kVoltage;
-          });
-    }
-
-    public double getPosition() {
-      return motor.getEncoder().getPosition();
-    }
-
-    public double getVelocity() {
-      return motor.getEncoder().getVelocity();
-    }
-
-    public double getVoltage() {
-      return motor.getBusVoltage()*motor.getAppliedOutput();
-    }
-
-    public void setInverted(boolean toInvert) {
-      motor.setInverted(toInvert);
-    }
-
-    public boolean isInverted() {
-      return motor.getInverted();
-    }
-
-    public void setCurrentLimit(double limit) {
-      motor.setSmartCurrentLimit((int) limit);
-    }
-
-    public void setForwardLimit(double forward) {
-      motor.setSoftLimit(SoftLimitDirection.kForward, (float) forward);
-    }
-
-    public void setBackLimit(double back) {
-      motor.setSoftLimit(SoftLimitDirection.kReverse, (float) back);
-    }
-
-    public void setSoftLimits(double forward, double back) {
-      setForwardLimit(forward);
-      setBackLimit(back);
-    }
-
-    public void resetEncoder() {
-      motor.getEncoder().setPosition(0);
-    }
-  }
-
-  private static class TalonFXAdapter implements MotorAdapter {
-    private TalonFX motor;
-
-    TalonFXAdapter(TalonFX motor) {
-      this.motor = motor;
-    }
-
-    public void setPID(PID pid) {
-      TalonFXConfiguration config = new TalonFXConfiguration();
-      config.Slot0.kP = pid.getP().orElse(0.0);
-      config.Slot0.kI = pid.getI().orElse(0.0);
-      config.Slot0.kD = pid.getD().orElse(0.0);
-      motor.getConfigurator().apply(config);
-    }
-
-    public void setReference(double reference, Control controlType) {
-      motor.setControl(
-          switch (controlType) {
-            case POSITION -> new PositionVoltage(reference);
-            case VELOCITY -> new VelocityVoltage(reference);
-            case VOLTAGE -> new VoltageOut(reference);
-          });
-    }
-
-    public double getPosition() {
-      return motor.getPosition().getValueAsDouble();
-    }
-
-    public double getVelocity() {
-      return motor.getVelocity().getValueAsDouble();
-    }
-
-    public double getVoltage() {
-      return motor.getMotorVoltage().getValueAsDouble();
-    }
-
-    public void setInverted(boolean toInvert) {
-      motor.setInverted(toInvert);
-    }
-
-    public boolean isInverted() {
-      return motor.getInverted();
-    }
-
-    public void setCurrentLimit(double limit) {
-      CurrentLimitsConfigs currentConfigs = new CurrentLimitsConfigs();
-      currentConfigs.SupplyCurrentLimit = limit;
-      currentConfigs.SupplyCurrentLimitEnable = true;
-      motor.getConfigurator().apply(currentConfigs);
-    }
-
-    public void setStatorCurrentLimit(double limit) {
-      CurrentLimitsConfigs currentConfigs = new CurrentLimitsConfigs();
-      currentConfigs.StatorCurrentLimit = limit;
-      currentConfigs.StatorCurrentLimitEnable = true;
-      motor.getConfigurator().apply(currentConfigs);
-    }
-
-    public void setForwardLimit(double forward) {
-      SoftwareLimitSwitchConfigs configs = new SoftwareLimitSwitchConfigs();
-      configs.ForwardSoftLimitThreshold = forward;
-      configs.ForwardSoftLimitEnable = true;
-      motor.getConfigurator().apply(configs);
-    }
-
-    public void setBackLimit(double back) {
-      SoftwareLimitSwitchConfigs configs = new SoftwareLimitSwitchConfigs();
-      configs.ReverseSoftLimitThreshold = back;
-      configs.ReverseSoftLimitEnable = true;
-      motor.getConfigurator().apply(configs);
-    }
-
-    public void setSoftLimits(double forward, double back) {
-      setForwardLimit(forward);
-      setBackLimit(back);
-    }
-
-    public void resetEncoder() {
-      motor.setPosition(0);
-    }
   }
 }

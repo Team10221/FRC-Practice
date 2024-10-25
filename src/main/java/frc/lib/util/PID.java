@@ -1,4 +1,4 @@
-package frc.lib.subsystem.util;
+package frc.lib.util;
 
 import java.util.Optional;
 
@@ -60,7 +60,7 @@ public class PID {
     if (hasPID()) {
       return new PIDController(kP.get(), kI.get(), kD.get());
     } else {
-      throw new Error("P, I, D constants not present.");
+      throw new Error("P, I, D constants not present."); // TODO: Better error
     }
   }
 

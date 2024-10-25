@@ -1,6 +1,6 @@
 package frc.robot;
 
-import frc.lib.subsystem.util.PID;
+import frc.lib.util.PID;
 
 public final class Constants {
 	public static class IntakeConstants {
