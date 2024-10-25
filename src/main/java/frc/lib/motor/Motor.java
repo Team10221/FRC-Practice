@@ -22,8 +22,9 @@ public class Motor {
   private MotorController motor;
 
   /**
-   * An enum for common types of motor control: position, velocity, voltage. 
-   * Corresponds to each type of motor control for TalonFX and CANSparkBase motor controllers.
+   * An enum for common types of motor control: position, velocity, voltage.
+   * Corresponds to each type of motor control for TalonFX and CANSparkBase motor
+   * controllers.
    */
   public enum Control {
     POSITION, VELOCITY, VOLTAGE
@@ -38,6 +39,7 @@ public class Motor {
   private Motor(MotorController motor, MotorAdapter adapter) {
     this.motor = motor;
     this.adapter = adapter;
+    setThreshold(0.05);
   }
 
   /**
@@ -337,7 +339,7 @@ public class Motor {
    * @return Whether the motor is at the target or not.
    */
   public boolean isAtTarget(double target) {
-    return Math.abs(getPosition() - target) < threshold;
+    return Math.abs(getPosition() - target) <= threshold;
   }
 
   /**
