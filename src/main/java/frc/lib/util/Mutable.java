@@ -1,10 +1,10 @@
-package frc.lib.subsystem.util;
+package frc.lib.util;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A mutable data structure that mimics enum-like behavior.
@@ -16,7 +16,7 @@ public class Mutable<T> {
      */
     public static class Builder<T> {
         private final String name;
-        private final Map<String, T> values = new ConcurrentHashMap<>();
+        private final Map<String, T> values = new HashMap<>();
 
         /**
          * Constructs a new Builder with a given name.
@@ -59,7 +59,7 @@ public class Mutable<T> {
 
         private Instance(String name, Map<String, T> values) {
             this.name = name;
-            this.values = new ConcurrentHashMap<>(values);
+            this.values = new HashMap<>(values);
         }
 
         /**
@@ -130,7 +130,7 @@ public class Mutable<T> {
         }
     }
 
-    private final Map<String, Instance<T>> instances = new ConcurrentHashMap<>();
+    private final Map<String, Instance<T>> instances = new HashMap<>();
 
     /**
      * Adds an Instance to this Mutable.
